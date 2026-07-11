@@ -1,0 +1,49 @@
+package api
+
+import (
+	"context"
+	"fmt"
+	"log/slog"
+	"net/http"
+	"time"
+
+	"github.com/go-chi/chi/v5"
+	"github.com/zed-assistant/mcp/internal/configuration"
+)
+
+type HttpServer struct {
+	appConfig  *configuration.AppConfig
+	httpServer *http.Server
+	logger     *slog.Logger
+}
+
+func NewHttpServer(appConfig *configuration.AppConfig, logger *slog.Logger) (*HttpServer, error) {
+	router := chi.NewRouter()
+
+	router.Get("/hello", func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte("Hello, World!"))
+	})
+
+	httpServer := &http.Server{
+		ReadHeaderTimeout: 10 * time.Second,
+		Addr:              fmt.Sprintf(":%d", appConfig.Server.Port),
+		Handler:           router,
+	}
+
+	return &HttpServer{
+		appConfig:  appConfig,
+		httpServer: httpServer,
+		logger:     logger,
+	}, nil
+}
+
+func (s *HttpServer) Start(ctx context.Context) error {
+	s.logger.InfoContext(ctx, fmt.Sprintf("Starting HTTP server on port %d", s.appConfig.Server.Port))
+	return s.httpServer.ListenAndServe()
+}
+
+func (s *HttpServer) Shutdown(ctx context.Context) error {
+	s.logger.InfoContext(ctx, "Shutting down HTTP server")
+	return s.httpServer.Shutdown(ctx)
+}

@@ -1,0 +1,5 @@
+logger:
+  json_format: false
+  disable_color: false
+server:
+  port: 8080
