@@ -3,3 +3,7 @@ logger:
   disable_color: false
 server:
   port: 8080
+  external_url: ""
+oauth2:
+  signing_secret: ""
+  id_token_signing_key: ""

@@ -31,7 +31,13 @@ func main() {
 	ctx, stop := signal.NotifyContext(ctx, syscall.SIGTERM, syscall.SIGINT)
 	defer stop()
 
-	httpServer, err := api.NewHttpServer(appConfig, log)
+	deps, err := newServerDeps(appConfig, log)
+	if err != nil {
+		log.ErrorContext(ctx, "Failed to create server dependencies", logger.LogError(err))
+		os.Exit(1) // nolint:gocritic
+	}
+
+	httpServer, err := api.NewHttpServer(appConfig, deps.authApi, log)
 	if err != nil {
 		log.ErrorContext(ctx, "Failed to create HTTP server", logger.LogError(err))
 		os.Exit(1) // nolint:gocritic
