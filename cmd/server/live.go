@@ -11,6 +11,7 @@ import (
 	localidp "github.com/zed-assistant/mcp/internal/auth/idp/local"
 	"github.com/zed-assistant/mcp/internal/auth/oauth"
 	"github.com/zed-assistant/mcp/internal/configuration"
+	"github.com/zed-assistant/mcp/internal/jwt"
 	"github.com/zed-assistant/mcp/internal/random"
 	"github.com/zed-assistant/mcp/internal/request"
 )
@@ -29,7 +30,7 @@ func newServerDeps(appConfig *configuration.AppConfig, log *slog.Logger) (*serve
 	oauthStore := oauth.NewMemoryStore(cimdResolver, appConfig)
 	pendingAuthStore := oauth.NewPendingStore(appConfig, rand)
 	oauthProvider, err := oauth.NewOAuth2Provider(appConfig, rand, oauthStore)
-	localIDP := localidp.NewLocalIDP(appConfig)
+	localIDP := localidp.NewLocalIDP(appConfig, jwt.Sign, time.Now)
 	if err != nil {
 		return nil, err
 	}

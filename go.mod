@@ -6,9 +6,9 @@ tool github.com/air-verse/air
 
 require (
 	github.com/go-chi/chi/v5 v5.3.1
+	github.com/golang-jwt/jwt/v5 v5.2.3
 	github.com/knadh/koanf/parsers/yaml v1.1.0
 	github.com/knadh/koanf/providers/env v1.1.0
-	github.com/knadh/koanf/providers/file v1.2.1
 	github.com/knadh/koanf/providers/rawbytes v1.0.0
 	github.com/knadh/koanf/v2 v2.3.5
 	github.com/lmittmann/tint v1.1.3

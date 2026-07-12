@@ -2,7 +2,9 @@ package authapi
 
 import (
 	"net/http"
+	"time"
 
+	"github.com/zed-assistant/mcp/internal/auth/idp"
 	"github.com/zed-assistant/mcp/internal/logger"
 )
 
@@ -28,7 +30,7 @@ func (a *AuthApi) localAuthentication(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Unauthorized", http.StatusUnauthorized)
 		return
 	}
-	authenticatedUser, err := a.localIDP.Authenticate(user, pass)
+	signedAssertion, err := a.localIDP.Authenticate(user, pass, state)
 	if err != nil {
 		a.log.WarnContext(ctx, "Authentication failed", logger.LogError(err))
 		w.Header().Set("WWW-Authenticate", `Basic realm="restricted", charset="UTF-8"`)
@@ -36,6 +38,15 @@ func (a *AuthApi) localAuthentication(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.WriteHeader(http.StatusOK)
-	w.Write([]byte("Local authentication successful " + authenticatedUser.Email))
+	http.SetCookie(w, &http.Cookie{
+		Name:     idp.IDPCallbackCookieName,
+		Value:    signedAssertion,
+		Path:     "/",
+		MaxAge:   int((5 * time.Minute).Seconds()),
+		HttpOnly: true,
+		Secure:   true,
+		SameSite: http.SameSiteLaxMode,
+	})
+
+	http.Redirect(w, r, a.appConfig.Server.ExternalUrl+"/auth/callback", http.StatusFound)
 }

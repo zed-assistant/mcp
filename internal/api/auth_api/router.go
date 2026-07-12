@@ -7,7 +7,6 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/ory/fosite"
-	localidp "github.com/zed-assistant/mcp/internal/auth/idp/local"
 	"github.com/zed-assistant/mcp/internal/auth/oauth"
 	"github.com/zed-assistant/mcp/internal/configuration"
 	"github.com/zed-assistant/mcp/internal/logger"
@@ -15,7 +14,7 @@ import (
 
 type LocalIDP interface {
 	GetAuthorizationURL(state string, nonce string) (string, error)
-	Authenticate(username string, password string) (*localidp.LocalIDPUser, error)
+	Authenticate(username string, password string, pendingRequestID string) (string, error)
 }
 
 type AuthApi struct {
