@@ -34,7 +34,7 @@ func NewOAuth2Provider(appConfig *configuration.AppConfig, random Random, store 
 	}
 
 	idTokenSigningKey := appConfig.OAuth2.IdTokenSigningKey
-	if idTokenSigningKey == nil {
+	if idTokenSigningKey == nil || idTokenSigningKey.N == nil {
 		k, err := rsa.GenerateKey(rand.Reader, 2048)
 		if err != nil {
 			return nil, fmt.Errorf("failed to generate ID token signing key: %w", err)
@@ -54,5 +54,5 @@ func NewOAuth2Provider(appConfig *configuration.AppConfig, random Random, store 
 		SendDebugMessagesToClients: false,
 	}
 
-	return compose.ComposeAllEnabled(cfg, store, idTokenSigningKey), nil
+	return compose.ComposeAllEnabled(cfg, store, (*rsa.PrivateKey)(idTokenSigningKey)), nil
 }

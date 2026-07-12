@@ -1,7 +1,6 @@
 package authapi
 
 import (
-	"errors"
 	"fmt"
 	"net/http"
 
@@ -49,6 +48,6 @@ func (a *AuthApi) getAuthorizationURL(state string, nonce string) (string, error
 	case "local":
 		return a.localIDP.GetAuthorizationURL(state, nonce)
 	default:
-		return "", errors.New(fmt.Sprintf("IDP type %s is not supported", a.appConfig.OAuth2.IDP.Type))
+		return "", fmt.Errorf("IDP type %s is not supported", a.appConfig.OAuth2.IDP.Type)
 	}
 }

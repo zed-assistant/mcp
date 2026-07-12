@@ -61,6 +61,7 @@ func (a *AuthApi) GetRouter() *chi.Mux {
 	router.Get("/authorize", a.authorize)
 	router.Get("/local", a.localAuthentication)
 	router.Get("/callback", a.authenticationCallback)
+	router.Post("/token", a.getToken)
 	return router
 }
 
