@@ -37,7 +37,7 @@ func main() {
 		os.Exit(1) // nolint:gocritic
 	}
 
-	httpServer, err := api.NewHttpServer(appConfig, deps.authApi, log)
+	httpServer, err := api.NewHttpServer(appConfig, deps.authApi, deps.wellKnownApi, log)
 	if err != nil {
 		log.ErrorContext(ctx, "Failed to create HTTP server", logger.LogError(err))
 		os.Exit(1) // nolint:gocritic

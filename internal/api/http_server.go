@@ -9,6 +9,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	authapi "github.com/zed-assistant/mcp/internal/api/auth_api"
+	wellknownapi "github.com/zed-assistant/mcp/internal/api/well_known_api"
 	"github.com/zed-assistant/mcp/internal/configuration"
 )
 
@@ -18,10 +19,11 @@ type HttpServer struct {
 	logger     *slog.Logger
 }
 
-func NewHttpServer(appConfig *configuration.AppConfig, auth *authapi.AuthApi, logger *slog.Logger) (*HttpServer, error) {
+func NewHttpServer(appConfig *configuration.AppConfig, auth *authapi.AuthApi, wellKnown *wellknownapi.WellKnownApi, logger *slog.Logger) (*HttpServer, error) {
 	router := chi.NewRouter()
 
 	router.Mount("/auth", auth.GetRouter())
+	router.Mount("/.well-known", wellKnown.GetRouter())
 
 	httpServer := &http.Server{
 		ReadHeaderTimeout: 10 * time.Second,

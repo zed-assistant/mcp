@@ -8,6 +8,7 @@ import (
 	"time"
 
 	authapi "github.com/zed-assistant/mcp/internal/api/auth_api"
+	wellknownapi "github.com/zed-assistant/mcp/internal/api/well_known_api"
 	"github.com/zed-assistant/mcp/internal/auth/idp"
 	localidp "github.com/zed-assistant/mcp/internal/auth/idp/local"
 	"github.com/zed-assistant/mcp/internal/auth/oauth"
@@ -41,8 +42,11 @@ func newServerDeps(appConfig *configuration.AppConfig, log *slog.Logger) (*serve
 	localIDP := localidp.NewLocalIDP(appConfig, idpManager)
 	auth := authapi.NewAuthApi(appConfig, oauthProvider, oauthStore, pendingAuthStore, log, idpManager, localIDP, time.Now)
 
+	wellKnown := wellknownapi.NewWellKnownApi(appConfig)
+
 	return &serverDeps{
-		authApi: auth,
+		authApi:      auth,
+		wellKnownApi: wellKnown,
 	}, nil
 }
 
