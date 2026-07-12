@@ -7,3 +7,10 @@ server:
 oauth2:
   signing_secret: ""
   id_token_signing_key: ""
+  pending_auth_ttl: 10m
+  idp:
+    type: "local"
+    local:
+      users:
+        - username: ""
+          password: ""

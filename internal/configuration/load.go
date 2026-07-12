@@ -3,11 +3,11 @@ package configuration
 import (
 	_ "embed"
 	"fmt"
+	"os"
 	"strings"
 
 	"github.com/knadh/koanf/parsers/yaml"
 	"github.com/knadh/koanf/providers/env"
-	"github.com/knadh/koanf/providers/file"
 	"github.com/knadh/koanf/providers/rawbytes"
 	"github.com/knadh/koanf/v2"
 )
@@ -27,7 +27,12 @@ func Load(path string) (*AppConfig, error) {
 		return nil, err
 	}
 
-	if err := k.Load(file.Provider(path), yaml.Parser()); err != nil {
+	raw, err := os.ReadFile(path)
+	if err != nil {
+		return nil, err
+	}
+	expanded := []byte(os.ExpandEnv(string(raw)))
+	if err := k.Load(rawbytes.Provider(expanded), yaml.Parser()); err != nil {
 		return nil, err
 	}
 

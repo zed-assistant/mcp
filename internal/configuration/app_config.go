@@ -1,5 +1,7 @@
 package configuration
 
+import "time"
+
 type LoggerConfig struct {
 	JsonFormat   bool `koanf:"json_format"`
 	DisableColor bool `koanf:"disable_color"`
@@ -13,6 +15,22 @@ type ServerConfig struct {
 type OAuth2Config struct {
 	SigningSecret     B64EncodedBytes `koanf:"signing_secret"`
 	IdTokenSigningKey *RSAPrivateKey  `koanf:"id_token_signing_key"`
+	PendingAuthTTL    time.Duration   `koanf:"pending_auth_ttl"`
+	IDP               OAuth2IDPConfig `koanf:"idp"`
+}
+
+type OAuth2IDPConfig struct {
+	Type  string                `koanf:"type"`
+	Local *OAuth2IDPLocalConfig `koanf:"local"`
+}
+
+type LocalUserConfig struct {
+	Username string `koanf:"username"`
+	Password string `koanf:"password"`
+}
+
+type OAuth2IDPLocalConfig struct {
+	Users []LocalUserConfig `koanf:"users"`
 }
 
 type AppConfig struct {

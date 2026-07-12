@@ -17,6 +17,19 @@ func (a *AuthApi) authorize(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.WriteHeader(http.StatusOK)
-	w.Write([]byte("Hello Authorize!"))
+	pending, err := a.pendingAuthStore.StorePendingAuth(r.URL.Query())
+	if err != nil {
+		a.log.Error("Unable to store pending auth request", logger.LogError(err))
+		a.oauthProvider.WriteAuthorizeError(ctx, w, authorizeRequest, err)
+		return
+	}
+
+	redirectURL, err := a.idpManager.GetAuthorizationURL(pending.ID, pending.Nonce)
+	if err != nil {
+		a.log.Error("Unable to get authorization URL", logger.LogError(err))
+		a.oauthProvider.WriteAuthorizeError(ctx, w, authorizeRequest, err)
+		return
+	}
+
+	http.Redirect(w, r, redirectURL, http.StatusFound)
 }

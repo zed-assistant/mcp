@@ -1,6 +1,9 @@
 package random
 
-import "crypto/rand"
+import (
+	"crypto/rand"
+	"encoding/hex"
+)
 
 type Random struct{}
 
@@ -16,4 +19,13 @@ func (s *Random) RandomBytes(length int) ([]byte, error) {
 	}
 
 	return bytes, nil
+}
+
+func (s *Random) RandomBytesHex(length int) (string, error) {
+	bytes, err := s.RandomBytes(length)
+	if err != nil {
+		return "", err
+	}
+
+	return hex.EncodeToString(bytes), nil
 }

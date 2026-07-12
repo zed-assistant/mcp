@@ -8,6 +8,7 @@ import (
 	"time"
 
 	authapi "github.com/zed-assistant/mcp/internal/api/auth_api"
+	"github.com/zed-assistant/mcp/internal/auth/idp"
 	"github.com/zed-assistant/mcp/internal/auth/oauth"
 	"github.com/zed-assistant/mcp/internal/configuration"
 	"github.com/zed-assistant/mcp/internal/random"
@@ -26,11 +27,13 @@ func newServerDeps(appConfig *configuration.AppConfig, log *slog.Logger) (*serve
 
 	cimdResolver := oauth.NewCIMDResolver(ssrfSafeHttpClient, time.Now)
 	oauthStore := oauth.NewMemoryStore(cimdResolver, appConfig)
+	pendingAuthStore := oauth.NewPendingStore(appConfig, rand)
 	oauthProvider, err := oauth.NewOAuth2Provider(appConfig, rand, oauthStore)
+	idpManager := idp.NewIDPManager(appConfig)
 	if err != nil {
 		return nil, err
 	}
-	auth := authapi.NewAuthApi(oauthProvider, oauthStore, log)
+	auth := authapi.NewAuthApi(oauthProvider, oauthStore, pendingAuthStore, log, idpManager)
 
 	return &serverDeps{
 		authApi: auth,

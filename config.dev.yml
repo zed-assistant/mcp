@@ -1,2 +1,9 @@
 server:
   external_url: "http://localhost:8080"
+oauth2:
+  idp:
+    type: "local"
+    local:
+      users:
+        - username: "admin@example.com"
+          password: "${MCP_ADMIN_PASSWORD}"

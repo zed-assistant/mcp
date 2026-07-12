@@ -14,6 +14,7 @@ import (
 
 type Random interface {
 	RandomBytes(length int) ([]byte, error)
+	RandomBytesHex(length int) (string, error)
 }
 
 type Store interface {
