@@ -1,6 +1,8 @@
 package authapi
 
 import (
+	"errors"
+	"fmt"
 	"net/http"
 
 	"github.com/zed-assistant/mcp/internal/logger"
@@ -24,7 +26,7 @@ func (a *AuthApi) authorize(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	redirectURL, err := a.idpManager.GetAuthorizationURL(pending.ID, pending.Nonce)
+	redirectURL, err := a.getAuthorizationURL(pending.ID, pending.Nonce)
 	if err != nil {
 		a.log.Error("Unable to get authorization URL", logger.LogError(err))
 		a.oauthProvider.WriteAuthorizeError(ctx, w, authorizeRequest, err)
@@ -32,4 +34,13 @@ func (a *AuthApi) authorize(w http.ResponseWriter, r *http.Request) {
 	}
 
 	http.Redirect(w, r, redirectURL, http.StatusFound)
+}
+
+func (a *AuthApi) getAuthorizationURL(state string, nonce string) (string, error) {
+	switch a.appConfig.OAuth2.IDP.Type {
+	case "local":
+		return a.localIDP.GetAuthorizationURL(state, nonce)
+	default:
+		return "", errors.New(fmt.Sprintf("IDP type %s is not supported", a.appConfig.OAuth2.IDP.Type))
+	}
 }

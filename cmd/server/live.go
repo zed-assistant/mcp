@@ -8,7 +8,7 @@ import (
 	"time"
 
 	authapi "github.com/zed-assistant/mcp/internal/api/auth_api"
-	"github.com/zed-assistant/mcp/internal/auth/idp"
+	localidp "github.com/zed-assistant/mcp/internal/auth/idp/local"
 	"github.com/zed-assistant/mcp/internal/auth/oauth"
 	"github.com/zed-assistant/mcp/internal/configuration"
 	"github.com/zed-assistant/mcp/internal/random"
@@ -29,11 +29,11 @@ func newServerDeps(appConfig *configuration.AppConfig, log *slog.Logger) (*serve
 	oauthStore := oauth.NewMemoryStore(cimdResolver, appConfig)
 	pendingAuthStore := oauth.NewPendingStore(appConfig, rand)
 	oauthProvider, err := oauth.NewOAuth2Provider(appConfig, rand, oauthStore)
-	idpManager := idp.NewIDPManager(appConfig)
+	localIDP := localidp.NewLocalIDP(appConfig)
 	if err != nil {
 		return nil, err
 	}
-	auth := authapi.NewAuthApi(oauthProvider, oauthStore, pendingAuthStore, log, idpManager)
+	auth := authapi.NewAuthApi(appConfig, oauthProvider, oauthStore, pendingAuthStore, log, localIDP)
 
 	return &serverDeps{
 		authApi: auth,
