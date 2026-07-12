@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/ory/fosite"
+	"github.com/ory/fosite/handler/openid"
 )
 
 type IntrospectionResult struct {
@@ -17,7 +18,7 @@ type IntrospectionResult struct {
 }
 
 func (a *AuthorizationManager) IntrospectAccessToken(ctx context.Context, accessToken string) (*IntrospectionResult, error) {
-	_, ar, err := a.oauthProvider.IntrospectToken(ctx, accessToken, fosite.AccessToken, &fosite.DefaultSession{})
+	_, ar, err := a.oauthProvider.IntrospectToken(ctx, accessToken, fosite.AccessToken, &openid.DefaultSession{})
 	if err != nil {
 		return nil, fmt.Errorf("failed to introspect access token: %w", err)
 	}
@@ -30,7 +31,7 @@ func (a *AuthorizationManager) IntrospectAccessToken(ctx context.Context, access
 		return nil, fmt.Errorf("access token audience does not include the required audience: %s", a.appConfig.Server.ExternalUrl+"/mcp")
 	}
 
-	sess, _ := ar.GetSession().(*fosite.DefaultSession)
+	sess, _ := ar.GetSession().(*openid.DefaultSession)
 	if sess == nil || sess.Subject == "" || sess.Username == "" {
 		return nil, fmt.Errorf("access token session is invalid or missing subject or username")
 	}

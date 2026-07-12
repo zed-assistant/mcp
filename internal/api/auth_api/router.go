@@ -8,6 +8,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/ory/fosite"
+	httpmiddleware "github.com/zed-assistant/mcp/internal/api/http_middleware"
 	"github.com/zed-assistant/mcp/internal/auth/idp"
 	"github.com/zed-assistant/mcp/internal/auth/oauth"
 	"github.com/zed-assistant/mcp/internal/configuration"
@@ -57,6 +58,8 @@ func NewAuthApi(
 
 func (a *AuthApi) GetRouter() *chi.Mux {
 	router := chi.NewRouter()
+
+	router.Use(httpmiddleware.AnonymousCORSMiddleware())
 
 	router.Get("/authorize", a.authorize)
 	router.Get("/local", a.localAuthentication)

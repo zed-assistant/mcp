@@ -9,6 +9,8 @@ import (
 )
 
 func (a *AuthApi) authorize(w http.ResponseWriter, r *http.Request) {
+	injectResourceAsAudience(r)
+
 	ctx := a.oauthStore.WithLoopbackRedirect(r.Context(), r.URL.Query())
 
 	authorizeRequest, err := a.oauthProvider.NewAuthorizeRequest(ctx, r)
@@ -41,6 +43,19 @@ func (a *AuthApi) authorize(w http.ResponseWriter, r *http.Request) {
 	}
 
 	http.Redirect(w, r, redirectURL, http.StatusFound)
+}
+
+// injectResourceAsAudience copies the RFC 8707 "resource" parameter(s) sent by MCP
+// clients into fosite's "audience" parameter, since fosite only understands "audience"
+// and has no native support for the "resource" indicator used by the MCP auth spec.
+func injectResourceAsAudience(r *http.Request) {
+	query := r.URL.Query()
+	resources := query["resource"]
+	if len(resources) == 0 {
+		return
+	}
+	query["audience"] = append(query["audience"], resources...)
+	r.URL.RawQuery = query.Encode()
 }
 
 func (a *AuthApi) getAuthorizationURL(state string, nonce string) (string, error) {
