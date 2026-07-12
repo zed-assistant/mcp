@@ -4,14 +4,19 @@ import (
 	"context"
 	"log/slog"
 	"net/http"
+	"time"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/ory/fosite"
+	"github.com/zed-assistant/mcp/internal/auth/idp"
 	"github.com/zed-assistant/mcp/internal/auth/oauth"
 	"github.com/zed-assistant/mcp/internal/configuration"
 	"github.com/zed-assistant/mcp/internal/logger"
 )
 
+type IDPManger interface {
+	VerifyAssertion(assertion string) (*idp.AuthenticationResult, error)
+}
 type LocalIDP interface {
 	GetAuthorizationURL(state string, nonce string) (string, error)
 	Authenticate(username string, password string, pendingRequestID string) (string, error)
@@ -23,7 +28,9 @@ type AuthApi struct {
 	oauthStore       *oauth.MemoryStore
 	pendingAuthStore *oauth.PendingStore
 	log              *slog.Logger
+	idpManager       IDPManger
 	localIDP         LocalIDP
+	getCurrentTime   func() time.Time
 }
 
 func NewAuthApi(
@@ -32,7 +39,9 @@ func NewAuthApi(
 	oauthStore *oauth.MemoryStore,
 	pendingAuthStore *oauth.PendingStore,
 	log *slog.Logger,
+	idpManager IDPManger,
 	localIDP LocalIDP,
+	getCurrentTime func() time.Time,
 ) *AuthApi {
 	return &AuthApi{
 		appConfig:        appConfig,
@@ -40,7 +49,9 @@ func NewAuthApi(
 		oauthStore:       oauthStore,
 		pendingAuthStore: pendingAuthStore,
 		log:              log,
+		idpManager:       idpManager,
 		localIDP:         localIDP,
+		getCurrentTime:   getCurrentTime,
 	}
 }
 
@@ -49,6 +60,7 @@ func (a *AuthApi) GetRouter() *chi.Mux {
 
 	router.Get("/authorize", a.authorize)
 	router.Get("/local", a.localAuthentication)
+	router.Get("/callback", a.authenticationCallback)
 	return router
 }
 

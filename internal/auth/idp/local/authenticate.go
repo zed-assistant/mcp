@@ -5,10 +5,8 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
-	"time"
 
 	"github.com/zed-assistant/mcp/internal/auth/idp"
-	"github.com/zed-assistant/mcp/internal/jwt"
 )
 
 var ErrInvalidCredentials = errors.New("invalid credentials")
@@ -26,30 +24,16 @@ func (i *LocalIDP) Authenticate(username string, password string, pendingRequest
 		usernameHash := sha256.Sum256([]byte(user.Username))
 		sub := hex.EncodeToString(usernameHash[:])
 
-		now := i.getCurrentTime()
-
-		claims := jwt.Claims{
-			Issuer:    "local",
-			Subject:   sub,
-			Audience:  []string{i.appConfig.Server.ExternalUrl},
-			Expiry:    now.Add(5 * time.Minute),
-			IssuedAt:  now,
-			NotBefore: now,
-			Additional: map[string]any{
-				"AuthResult": idp.AuthenticationResult{
-					Email:            user.Username,
-					Sub:              sub,
-					IDP:              "local",
-					PendingRequestID: pendingRequestID,
-				},
-			},
+		authResult := &idp.AuthenticationResult{
+			Email:            user.Username,
+			Sub:              sub,
+			IDP:              "local",
+			PendingRequestID: pendingRequestID,
 		}
 
-		signingOpts := jwt.SigningOptions{}
-
-		signed, err := i.signJwt(claims, signingOpts)
+		signed, err := i.idpManger.SignAssertion(authResult)
 		if err != nil {
-			return "", fmt.Errorf("failed to sign jwt: %w", err)
+			return "", fmt.Errorf("failed to sign assertion: %w", err)
 		}
 
 		return signed, nil

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/ory/fosite"
 	"github.com/zed-assistant/mcp/internal/logger"
 )
 
@@ -15,6 +16,13 @@ func (a *AuthApi) authorize(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		logError := oauthErrorToLoggerError(err)
 		a.log.Warn("Unable to parse authorize request", logger.LogError(logError))
+		a.oauthProvider.WriteAuthorizeError(ctx, w, authorizeRequest, err)
+		return
+	}
+
+	if r.URL.Query().Get("code_challenge") == "" {
+		err := fosite.ErrInvalidRequest.WithHint("Clients must include a code_challenge when performing the authorize code flow, but it is missing.")
+		a.log.Warn("Missing code_challenge in authorize request", logger.LogError(err))
 		a.oauthProvider.WriteAuthorizeError(ctx, w, authorizeRequest, err)
 		return
 	}

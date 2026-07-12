@@ -15,9 +15,6 @@ type PendingAuth struct {
 	Nonce string
 	CSRF  string
 
-	Sub   string
-	Email string
-
 	CreatedAt time.Time
 }
 

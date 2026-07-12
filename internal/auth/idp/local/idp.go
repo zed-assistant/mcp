@@ -1,27 +1,26 @@
 package localidp
 
 import (
-	"time"
-
+	"github.com/zed-assistant/mcp/internal/auth/idp"
 	"github.com/zed-assistant/mcp/internal/configuration"
-	"github.com/zed-assistant/mcp/internal/jwt"
 )
 
+type IDPManger interface {
+	SignAssertion(authResult *idp.AuthenticationResult) (string, error)
+}
+
 type LocalIDP struct {
-	appConfig      *configuration.AppConfig
-	signJwt        func(claims jwt.Claims, options jwt.SigningOptions) (string, error)
-	getCurrentTime func() time.Time
+	appConfig *configuration.AppConfig
+	idpManger IDPManger
 }
 
 func NewLocalIDP(
 	appConfig *configuration.AppConfig,
-	signJwt func(claims jwt.Claims, options jwt.SigningOptions) (string, error),
-	getCurrentTime func() time.Time,
+	idpManger IDPManger,
 ) *LocalIDP {
 	return &LocalIDP{
-		appConfig:      appConfig,
-		signJwt:        signJwt,
-		getCurrentTime: getCurrentTime,
+		appConfig: appConfig,
+		idpManger: idpManger,
 	}
 }
 

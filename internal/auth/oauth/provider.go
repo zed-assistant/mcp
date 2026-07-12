@@ -48,7 +48,7 @@ func NewOAuth2Provider(appConfig *configuration.AppConfig, random Random, store 
 		RefreshTokenLifespan:  30 * 24 * time.Hour,
 		AuthorizeCodeLifespan: time.Minute,
 
-		EnforcePKCEForPublicClients:    true,
+		EnforcePKCE:                    true,
 		EnablePKCEPlainChallengeMethod: false,
 
 		SendDebugMessagesToClients: false,
