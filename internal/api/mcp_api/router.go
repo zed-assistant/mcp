@@ -2,8 +2,6 @@ package mcpapi
 
 import (
 	"context"
-	"errors"
-	"fmt"
 	"log/slog"
 	"net/http"
 
@@ -13,37 +11,30 @@ import (
 	"github.com/zed-assistant/mcp/internal/auth/authorization"
 	"github.com/zed-assistant/mcp/internal/configuration"
 	"github.com/zed-assistant/mcp/internal/logger"
+	mcptool "github.com/zed-assistant/mcp/internal/mcp_tool"
 )
 
 type AuthManager interface {
 	IntrospectAccessToken(ctx context.Context, accessToken string) (*authorization.IntrospectionResult, error)
 }
 
-type whoamiInput struct{}
-
-func whoami(_ context.Context, req *mcp.CallToolRequest, _ whoamiInput) (*mcp.CallToolResult, any, error) {
-	info := req.Extra.TokenInfo
-	if info == nil {
-		return nil, nil, errors.New("no auth info on request")
-	}
-	return &mcp.CallToolResult{
-		Content: []mcp.Content{&mcp.TextContent{
-			Text: fmt.Sprintf("You are authenticated as user %s (scopes: %v) - email: %s", info.UserID, info.Scopes, info.Extra["Email"]),
-		}},
-	}, nil, nil
+type ToolsManager interface {
+	CollectTools() []mcptool.Tool
 }
 
 type McpApi struct {
-	log         *slog.Logger
-	authManager AuthManager
-	appConfig   *configuration.AppConfig
+	log          *slog.Logger
+	authManager  AuthManager
+	appConfig    *configuration.AppConfig
+	toolsManager ToolsManager
 }
 
-func NewMcpApi(l *slog.Logger, authManager AuthManager, appConfig *configuration.AppConfig) *McpApi {
+func NewMcpApi(l *slog.Logger, authManager AuthManager, appConfig *configuration.AppConfig, toolsManager ToolsManager) *McpApi {
 	return &McpApi{
-		log:         l,
-		authManager: authManager,
-		appConfig:   appConfig,
+		log:          l,
+		authManager:  authManager,
+		appConfig:    appConfig,
+		toolsManager: toolsManager,
 	}
 }
 
@@ -57,10 +48,9 @@ func (a *McpApi) GetRouter() *chi.Mux {
 		Logger: a.log,
 	})
 
-	mcp.AddTool(server, &mcp.Tool{
-		Name:        "whoami",
-		Description: "Returns the identity of the authenticated caller.",
-	}, whoami)
+	for _, tool := range a.toolsManager.CollectTools() {
+		tool.Register(server)
+	}
 
 	stremable := mcp.NewStreamableHTTPHandler(
 		func(r *http.Request) *mcp.Server {
