@@ -7,3 +7,13 @@ oauth2:
       users:
         - username: "admin@example.com"
           password: "${MCP_ADMIN_PASSWORD}"
+zomboid:
+  instances:
+    - name: "foo"
+      home_dir: "/tmp/foo"
+      users:
+        - "admin@example.com"
+    - name: "bar"
+      home_dir: "/tmp/bar"
+      users:
+        - "user@example.com"

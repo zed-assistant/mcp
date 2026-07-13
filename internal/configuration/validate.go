@@ -33,6 +33,32 @@ func (c *AppConfig) validate() error {
 		errs = append(errs, c.validateLocalIDP()...)
 	}
 
+	if len(c.Zomboid.Instances) == 0 {
+		errs = append(errs, fmt.Errorf("zomboid.instances must contain at least one instance"))
+	}
+
+	for i, instance := range c.Zomboid.Instances {
+		if instance.Name == "" {
+			errs = append(errs, fmt.Errorf("zomboid.instances[%d].name must be set", i))
+		}
+		if instance.HomeDir == "" {
+			errs = append(errs, fmt.Errorf("zomboid.instances[%d].home_dir must be set", i))
+		}
+		if len(instance.Users) == 0 {
+			errs = append(errs, fmt.Errorf("zomboid.instances[%d].users must contain at least one user", i))
+		}
+
+		for j, user := range instance.Users {
+			if user == "" {
+				errs = append(errs, fmt.Errorf("zomboid.instances[%d].users[%d] must be set", i, j))
+			}
+
+			if user != "" && !isValidEmail(user) {
+				errs = append(errs, fmt.Errorf("zomboid.instances[%d].users[%d] must be a valid email address", i, j))
+			}
+		}
+	}
+
 	if len(errs) > 0 {
 		return errors.Join(errs...)
 	}

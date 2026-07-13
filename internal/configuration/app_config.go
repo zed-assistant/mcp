@@ -33,8 +33,19 @@ type OAuth2IDPLocalConfig struct {
 	Users []LocalUserConfig `koanf:"users"`
 }
 
+type ZomboidInstanceConfig struct {
+	Name    string   `koanf:"name"`
+	HomeDir string   `koanf:"home_dir"`
+	Users   []string `koanf:"users"`
+}
+
+type ZomboidConfig struct {
+	Instances []ZomboidInstanceConfig `koanf:"instances"`
+}
+
 type AppConfig struct {
-	Logger LoggerConfig `koanf:"logger"`
-	Server ServerConfig `koanf:"server"`
-	OAuth2 OAuth2Config `koanf:"oauth2"`
+	Logger  LoggerConfig  `koanf:"logger"`
+	Server  ServerConfig  `koanf:"server"`
+	OAuth2  OAuth2Config  `koanf:"oauth2"`
+	Zomboid ZomboidConfig `koanf:"zomboid"`
 }

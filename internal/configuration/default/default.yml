@@ -14,3 +14,9 @@ oauth2:
       users:
         - username: ""
           password: ""
+zomboid:
+  instances:
+    - name: ""
+    - home_dir: ""
+    - users:
+      - ""
