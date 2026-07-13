@@ -40,7 +40,7 @@ type ZomboidInstanceConfig struct {
 }
 
 type ZomboidConfig struct {
-	Instances []ZomboidInstanceConfig `koanf:"instances"`
+	Instances map[string]ZomboidInstanceConfig `koanf:"instances"`
 }
 
 type AppConfig struct {

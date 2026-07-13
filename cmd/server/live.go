@@ -11,6 +11,7 @@ import (
 	mcpapi "github.com/zed-assistant/mcp/internal/api/mcp_api"
 	wellknownapi "github.com/zed-assistant/mcp/internal/api/well_known_api"
 	"github.com/zed-assistant/mcp/internal/auth/authorization"
+	instanceauth "github.com/zed-assistant/mcp/internal/auth/authorization/instance_auth"
 	"github.com/zed-assistant/mcp/internal/auth/idp"
 	localidp "github.com/zed-assistant/mcp/internal/auth/idp/local"
 	"github.com/zed-assistant/mcp/internal/auth/oauth"
@@ -48,8 +49,9 @@ func newServerDeps(appConfig *configuration.AppConfig, log *slog.Logger) (*serve
 
 	wellKnown := wellknownapi.NewWellKnownApi(appConfig)
 
+	instanceAuth := instanceauth.NewInstanceAuthorization(appConfig)
 	authManger := authorization.NewAuthorizationManager(appConfig, oauthProvider)
-	zomboidInstanceManager := instance.NewZomboidInstanceManager(appConfig)
+	zomboidInstanceManager := instance.NewZomboidInstanceManager(appConfig, instanceAuth)
 	toolsManager := mcptool.NewMcpToolManager(log, zomboidInstanceManager)
 	mcp := mcpapi.NewMcpApi(log, authManger, appConfig, toolsManager)
 

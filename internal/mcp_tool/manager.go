@@ -5,27 +5,41 @@ import (
 	"errors"
 	"log/slog"
 	"runtime/debug"
+	"strings"
 
+	"github.com/go-playground/locales/en"
+	ut "github.com/go-playground/universal-translator"
+	"github.com/go-playground/validator/v10"
+	en_translations "github.com/go-playground/validator/v10/translations/en"
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 	"github.com/zed-assistant/mcp/internal/auth/authorization"
+	domainerror "github.com/zed-assistant/mcp/internal/domain_error"
+	"github.com/zed-assistant/mcp/internal/logger"
 	"github.com/zed-assistant/mcp/internal/zomboid/instance"
 )
 
-type McpToolManger struct {
+var validate = validator.New()
+var enLocale = en.New()
+var uni = ut.New(enLocale, enLocale)
+var trans, _ = uni.GetTranslator("en")
+var _ = en_translations.RegisterDefaultTranslations(validate, trans)
+
+type McpToolManager struct {
 	logger                 *slog.Logger
 	zomboidInstanceManager *instance.ZomboidInstanceManager
 }
 
-func NewMcpToolManager(logger *slog.Logger, zomboidInstanceManager *instance.ZomboidInstanceManager) *McpToolManger {
-	return &McpToolManger{
+func NewMcpToolManager(logger *slog.Logger, zomboidInstanceManager *instance.ZomboidInstanceManager) *McpToolManager {
+	return &McpToolManager{
 		logger:                 logger,
 		zomboidInstanceManager: zomboidInstanceManager,
 	}
 }
 
-func (m *McpToolManger) CollectTools() []Tool {
+func (m *McpToolManager) CollectTools() []Tool {
 	return []Tool{
 		m.ListZomboidInstances(),
+		m.ReadZomboidServerConfig(),
 	}
 }
 
@@ -83,10 +97,21 @@ func withUser[In, Out any](log *slog.Logger, h userToolFunc[In, Out],
 			Email:   email,
 		}
 
+		if err := validate.Struct(in); err != nil {
+			log.WarnContext(ctx, "Tool handler called with invalid input", logger.LogError(err))
+			translatedErrs := make([]string, 0)
+			for _, e := range err.(validator.ValidationErrors) {
+				translatedErrs = append(translatedErrs, e.Translate(trans))
+			}
+			return nil, zero, errors.New("Invalid input: " + strings.Join(translatedErrs, "; "))
+		}
+
 		out, err := h(ctx, principal, in)
 		if err != nil {
-			log.ErrorContext(ctx, "Tool handler returned an error",
-				slog.Any("error", err))
+			log.ErrorContext(ctx, "Tool handler returned an error", logger.LogError(err))
+			if domainErr, ok := errors.AsType[*domainerror.DomainError](err); ok {
+				return nil, zero, errors.New(domainErr.PublicMessage)
+			}
 			return nil, zero, errors.New("internal error")
 		}
 		return nil, out, nil

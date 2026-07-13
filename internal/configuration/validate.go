@@ -37,24 +37,27 @@ func (c *AppConfig) validate() error {
 		errs = append(errs, fmt.Errorf("zomboid.instances must contain at least one instance"))
 	}
 
-	for i, instance := range c.Zomboid.Instances {
+	for id, instance := range c.Zomboid.Instances {
+		if id == "" {
+			errs = append(errs, fmt.Errorf("zomboid.instances[%s].id must be set", id))
+		}
 		if instance.Name == "" {
-			errs = append(errs, fmt.Errorf("zomboid.instances[%d].name must be set", i))
+			errs = append(errs, fmt.Errorf("zomboid.instances[%s].name must be set", id))
 		}
 		if instance.HomeDir == "" {
-			errs = append(errs, fmt.Errorf("zomboid.instances[%d].home_dir must be set", i))
+			errs = append(errs, fmt.Errorf("zomboid.instances[%s].home_dir must be set", id))
 		}
 		if len(instance.Users) == 0 {
-			errs = append(errs, fmt.Errorf("zomboid.instances[%d].users must contain at least one user", i))
+			errs = append(errs, fmt.Errorf("zomboid.instances[%s].users must contain at least one user", id))
 		}
 
 		for j, user := range instance.Users {
 			if user == "" {
-				errs = append(errs, fmt.Errorf("zomboid.instances[%d].users[%d] must be set", i, j))
+				errs = append(errs, fmt.Errorf("zomboid.instances[%s].users[%d] must be set", id, j))
 			}
 
 			if user != "" && !isValidEmail(user) {
-				errs = append(errs, fmt.Errorf("zomboid.instances[%d].users[%d] must be a valid email address", i, j))
+				errs = append(errs, fmt.Errorf("zomboid.instances[%s].users[%d] must be a valid email address", id, j))
 			}
 		}
 	}
