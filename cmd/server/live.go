@@ -54,7 +54,7 @@ func newServerDeps(appConfig *configuration.AppConfig, log *slog.Logger) (*serve
 	authManger := authorization.NewAuthorizationManager(appConfig, oauthProvider)
 	instanceLockManager := instance.NewInstanceLockManager()
 	serverConfigManager := serverconfig.NewServerConfigManager()
-	zomboidInstanceManager := instance.NewZomboidInstanceManager(appConfig, instanceAuth, instanceLockManager, serverConfigManager)
+	zomboidInstanceManager := instance.NewZomboidInstanceManager(appConfig, instanceAuth, instanceLockManager, serverConfigManager, log)
 	toolsManager := mcptool.NewMcpToolManager(log, zomboidInstanceManager)
 	mcp := mcpapi.NewMcpApi(log, authManger, appConfig, toolsManager)
 

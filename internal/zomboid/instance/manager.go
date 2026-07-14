@@ -1,6 +1,8 @@
 package instance
 
 import (
+	"log/slog"
+
 	"github.com/zed-assistant/mcp/internal/auth/authorization"
 	"github.com/zed-assistant/mcp/internal/configuration"
 	serverconfig "github.com/zed-assistant/mcp/internal/zomboid/server_config"
@@ -19,6 +21,7 @@ type LockManager interface {
 
 type ServerConfigManager interface {
 	ReadServerConfig(instanceID string) (map[string]serverconfig.ConfigEntry, error)
+	UpdateConfig(instanceHomeDir string, newConfig map[string]string) error
 }
 
 type ZomboidInstanceManager struct {
@@ -26,6 +29,7 @@ type ZomboidInstanceManager struct {
 	instanceAuth        InstanceAuth
 	instanceLockManager LockManager
 	serverConfigManager ServerConfigManager
+	log                 *slog.Logger
 }
 
 func NewZomboidInstanceManager(
@@ -33,11 +37,13 @@ func NewZomboidInstanceManager(
 	instanceAuth InstanceAuth,
 	instanceLockManager LockManager,
 	serverConfigManager ServerConfigManager,
+	log *slog.Logger,
 ) *ZomboidInstanceManager {
 	return &ZomboidInstanceManager{
 		appConfig:           appConfig,
 		instanceAuth:        instanceAuth,
 		instanceLockManager: instanceLockManager,
 		serverConfigManager: serverConfigManager,
+		log:                 log,
 	}
 }

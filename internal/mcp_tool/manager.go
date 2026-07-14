@@ -40,10 +40,11 @@ func (m *McpToolManager) CollectTools() []Tool {
 	return []Tool{
 		m.ListZomboidInstances(),
 		m.ReadZomboidServerConfig(),
+		m.UpdateZomboidServerConfig(),
 	}
 }
 
-type EmptyInput struct{}
+type Empty struct{}
 
 func withRecover[In, Out any](log *slog.Logger, h mcp.ToolHandlerFor[In, Out]) mcp.ToolHandlerFor[In, Out] {
 	return func(ctx context.Context, req *mcp.CallToolRequest, in In) (result *mcp.CallToolResult, output Out, err error) {
@@ -68,13 +69,35 @@ func withUserRecover[In, Out any](log *slog.Logger, h userToolFunc[In, Out]) mcp
 	return withRecover(log, withUser(log, h))
 }
 
-func withUserRecoverNoInput[Out any](log *slog.Logger, h func(ctx context.Context, principal authorization.Principal) (Out, error)) mcp.ToolHandlerFor[EmptyInput, Out] {
-	return withUserRecover(log, func(ctx context.Context, principal authorization.Principal, _ EmptyInput) (Out, error) {
-		return h(ctx, principal)
-	})
+func withUserRecoverNoInput[Out any](log *slog.Logger, h func(ctx context.Context, principal authorization.Principal) (Out, error)) mcp.ToolHandlerFor[Empty, Out] {
+	return withUserRecover(log, noInput(h))
+}
+
+func withUserRecoverNoOutput[In any](log *slog.Logger, h func(ctx context.Context, principal authorization.Principal, in In) error) mcp.ToolHandlerFor[In, Empty] {
+	return withUserRecover(log, noOutput(h))
+}
+
+func withUserRecoverNoInputNoOutput(log *slog.Logger, h func(ctx context.Context, principal authorization.Principal) error) mcp.ToolHandlerFor[Empty, Empty] {
+	return withUserRecover(log, noInput(func(ctx context.Context, principal authorization.Principal) (Empty, error) {
+		return Empty{}, h(ctx, principal)
+	}))
 }
 
 type userToolFunc[In, Out any] func(ctx context.Context, principal authorization.Principal, in In) (Out, error)
+
+// noInput adapts a domain function that takes no input into the userToolFunc[Empty, Out] shape.
+func noInput[Out any](h func(ctx context.Context, principal authorization.Principal) (Out, error)) userToolFunc[Empty, Out] {
+	return func(ctx context.Context, principal authorization.Principal, _ Empty) (Out, error) {
+		return h(ctx, principal)
+	}
+}
+
+// noOutput adapts a domain function that returns only an error into the userToolFunc[In, Empty] shape.
+func noOutput[In any](h func(ctx context.Context, principal authorization.Principal, in In) error) userToolFunc[In, Empty] {
+	return func(ctx context.Context, principal authorization.Principal, in In) (Empty, error) {
+		return Empty{}, h(ctx, principal, in)
+	}
+}
 
 func withUser[In, Out any](log *slog.Logger, h userToolFunc[In, Out],
 ) func(context.Context, *mcp.CallToolRequest, In) (*mcp.CallToolResult, Out, error) {
