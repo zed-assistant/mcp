@@ -22,11 +22,11 @@ func SSRFSafeDialContext(ctx context.Context, network, addr string) (net.Conn, e
 		return nil, err
 	}
 	if len(ips) == 0 {
-		return nil, fmt.Errorf("cimd: no addresses for %s", host)
+		return nil, fmt.Errorf("no addresses for %s", host)
 	}
 	for _, ip := range ips {
 		if !isPublicIP(ip) {
-			return nil, fmt.Errorf("cimd: refusing non-public address %s for %s", ip, host)
+			return nil, fmt.Errorf("refusing non-public address %s for %s", ip, host)
 		}
 	}
 	return dialer.DialContext(ctx, network, net.JoinHostPort(ips[0].String(), port))
