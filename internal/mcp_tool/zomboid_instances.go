@@ -6,6 +6,7 @@ import (
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 	"github.com/zed-assistant/mcp/internal/auth/authorization"
 	"github.com/zed-assistant/mcp/internal/zomboid/instance"
+	serverconfig "github.com/zed-assistant/mcp/internal/zomboid/server_config"
 )
 
 func (m *McpToolManager) ListZomboidInstances() Tool {
@@ -29,7 +30,7 @@ func (m *McpToolManager) ListZomboidInstances() Tool {
 }
 
 func (m *McpToolManager) ReadZomboidServerConfig() Tool {
-	return &MCPTool[instance.ReadServerConfigInput, map[string]any]{
+	return &MCPTool[instance.ReadServerConfigInput, map[string]serverconfig.ConfigEntry]{
 		Definition: &mcp.Tool{
 			Name:        "read-zomboid-server-config",
 			Description: "Reads Project Zomboid server config for a given instance",
@@ -42,7 +43,7 @@ func (m *McpToolManager) ReadZomboidServerConfig() Tool {
 				Title:           "Read Project Zomboid server config",
 			},
 		},
-		Handler: withUserRecover(m.logger, func(ctx context.Context, principal authorization.Principal, input instance.ReadServerConfigInput) (map[string]any, error) {
+		Handler: withUserRecover(m.logger, func(ctx context.Context, principal authorization.Principal, input instance.ReadServerConfigInput) (map[string]serverconfig.ConfigEntry, error) {
 			return m.zomboidInstanceManager.ReadServerConfig(ctx, principal, input)
 		}),
 	}

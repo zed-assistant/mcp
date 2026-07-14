@@ -3,19 +3,41 @@ package instance
 import (
 	"github.com/zed-assistant/mcp/internal/auth/authorization"
 	"github.com/zed-assistant/mcp/internal/configuration"
+	serverconfig "github.com/zed-assistant/mcp/internal/zomboid/server_config"
 )
 
 type InstanceAuth interface {
 	AuthorizeInstanceAccess(instanceID string, principal authorization.Principal) error
 }
-type ZomboidInstanceManager struct {
-	appConfig    *configuration.AppConfig
-	instanceAuth InstanceAuth
+
+type LockManager interface {
+	Lock(instanceId string)
+	Unlock(instanceId string)
+	RLock(instanceId string)
+	RUnlock(instanceId string)
 }
 
-func NewZomboidInstanceManager(appConfig *configuration.AppConfig, instanceAuth InstanceAuth) *ZomboidInstanceManager {
+type ServerConfigManager interface {
+	ReadServerConfig(instanceID string) (map[string]serverconfig.ConfigEntry, error)
+}
+
+type ZomboidInstanceManager struct {
+	appConfig           *configuration.AppConfig
+	instanceAuth        InstanceAuth
+	instanceLockManager LockManager
+	serverConfigManager ServerConfigManager
+}
+
+func NewZomboidInstanceManager(
+	appConfig *configuration.AppConfig,
+	instanceAuth InstanceAuth,
+	instanceLockManager LockManager,
+	serverConfigManager ServerConfigManager,
+) *ZomboidInstanceManager {
 	return &ZomboidInstanceManager{
-		appConfig:    appConfig,
-		instanceAuth: instanceAuth,
+		appConfig:           appConfig,
+		instanceAuth:        instanceAuth,
+		instanceLockManager: instanceLockManager,
+		serverConfigManager: serverConfigManager,
 	}
 }
