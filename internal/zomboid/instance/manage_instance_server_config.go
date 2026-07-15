@@ -28,13 +28,14 @@ func (m *ZomboidInstanceManager) ReadServerConfig(ctx context.Context, principal
 }
 
 type UpdateServerConfigInput struct {
-	InstanceID string            `json:"instanceId" jsonschema:"The ID of the Project Zomboid server instance to update the config for" validate:"required"`
-	Updates    map[string]string `json:"updates" jsonschema:"The partial updates as key-value pairs to apply to the server config"`
+	InstanceID string
+	Updates    map[string]string
+	ApplyLive  bool
 }
 
-func (m *ZomboidInstanceManager) UpdateServerConfig(ctx context.Context, principal authorization.Principal, input UpdateServerConfigInput) error {
+func (m *ZomboidInstanceManager) UpdateServerConfig(ctx context.Context, principal authorization.Principal, input UpdateServerConfigInput) (map[string]config.ConfigEntry, error) {
 	if err := m.instanceAuth.AuthorizeInstanceAccess(input.InstanceID, principal); err != nil {
-		return err
+		return nil, err
 	}
 
 	m.instanceLockManager.Lock(input.InstanceID)
@@ -46,10 +47,10 @@ func (m *ZomboidInstanceManager) UpdateServerConfig(ctx context.Context, princip
 
 	if err := m.serverConfigManager.UpdateServerConfig(instanceCfg.HomeDir, input.Updates); err != nil {
 		m.log.Error("Server config update failed", logger.LogError(err))
-		return err
+		return nil, err
 	}
 
 	m.log.InfoContext(ctx, fmt.Sprintf("Server config updated successfully for instance %s (%s)", input.InstanceID, instanceCfg.Name))
 
-	return nil
+	return m.serverConfigManager.ReadServerConfig(instanceCfg.HomeDir, nil)
 }

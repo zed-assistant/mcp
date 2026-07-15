@@ -69,8 +69,15 @@ func (m *McpToolManager) ReadZomboidServerConfig() Tool {
 	}
 }
 
+type UpdateConfigInput struct {
+	InstanceId string            `json:"instanceId" jsonschema:"The ID of the Project Zomboid server instance to read the configuration from." validate:"required"`
+	ConfigType configType        `json:"configType" jsonschema:"The type of configuration to read. Supported values: 'server' for server configuration." validate:"required,oneof=server"`
+	Updates    map[string]string `json:"updates" jsonschema:"The partial updates as key-value pairs to apply to the server config"`
+	ApplyLive  bool              `json:"applyLive,omitempty" jsonschema:"Attempt to apply the updates live to the running server (works only for server config). If false or missing, the updates will be applied on next server restart."`
+}
+
 func (m *McpToolManager) UpdateZomboidServerConfig() Tool {
-	return &MCPTool[instance.UpdateServerConfigInput, Empty]{
+	return &MCPTool[UpdateConfigInput, map[string]config.ConfigEntry]{
 		Definition: &mcp.Tool{
 			Name:        "update-zomboid-server-config",
 			Description: "Updates Project Zomboid server config for a given instance. Provided input is a partial update, meaning that only the provided keys will be updated, and the rest of the config will remain unchanged.",
@@ -83,8 +90,12 @@ func (m *McpToolManager) UpdateZomboidServerConfig() Tool {
 				Title:           "Update Project Zomboid server config",
 			},
 		},
-		Handler: withUserRecoverNoOutput(m.logger, func(ctx context.Context, principal authorization.Principal, input instance.UpdateServerConfigInput) error {
-			return m.zomboidInstanceManager.UpdateServerConfig(ctx, principal, input)
+		Handler: withUserRecover(m.logger, func(ctx context.Context, principal authorization.Principal, input UpdateConfigInput) (map[string]config.ConfigEntry, error) {
+			return m.zomboidInstanceManager.UpdateServerConfig(ctx, principal, instance.UpdateServerConfigInput{
+				InstanceID: input.InstanceId,
+				Updates:    input.Updates,
+				ApplyLive:  input.ApplyLive,
+			})
 		}),
 	}
 }
