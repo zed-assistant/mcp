@@ -1,4 +1,4 @@
-package serverconfig
+package config
 
 type ConfigEntry struct {
 	Key         string `json:"key" jsonschema:"Name of the configuration entry"`

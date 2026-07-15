@@ -5,8 +5,8 @@ import (
 
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 	"github.com/zed-assistant/mcp/internal/auth/authorization"
+	"github.com/zed-assistant/mcp/internal/zomboid/config"
 	"github.com/zed-assistant/mcp/internal/zomboid/instance"
-	serverconfig "github.com/zed-assistant/mcp/internal/zomboid/server_config"
 )
 
 func (m *McpToolManager) ListZomboidInstances() Tool {
@@ -29,22 +29,42 @@ func (m *McpToolManager) ListZomboidInstances() Tool {
 	}
 }
 
+type configType string
+
+const (
+	ConfigTypeServer configType = "server"
+)
+
+type ReadConfigInput struct {
+	InstanceId string     `json:"instanceId" jsonschema:"The ID of the Project Zomboid server instance to read the configuration from." validate:"required"`
+	ConfigType configType `json:"configType" jsonschema:"The type of configuration to read. Supported values: 'server' for server configuration." validate:"required,oneof=server"`
+	Keys       *[]string  `json:"keys,omitempty" jsonschema:"Optional filter. Omit to return all. These files are large - filter when you know what you want. You can use * placeholder in any key filter."`
+}
+
 func (m *McpToolManager) ReadZomboidServerConfig() Tool {
-	return &MCPTool[instance.ReadServerConfigInput, map[string]serverconfig.ConfigEntry]{
+	return &MCPTool[ReadConfigInput, map[string]config.ConfigEntry]{
 		Definition: &mcp.Tool{
-			Name:        "read-zomboid-server-config",
-			Description: "Reads Project Zomboid server config for a given instance",
-			Title:       "Read Project Zomboid server config",
+			Name:        "read-zomboid-config",
+			Description: "Reads Project Zomboid configuration. Server config (ports, player limits, PVP, mods list)",
+			Title:       "Read Project Zomboid config",
 			Annotations: &mcp.ToolAnnotations{
 				DestructiveHint: new(false),
 				IdempotentHint:  true,
 				OpenWorldHint:   new(false),
 				ReadOnlyHint:    true,
-				Title:           "Read Project Zomboid server config",
+				Title:           "Read Project Zomboid config",
 			},
 		},
-		Handler: withUserRecover(m.logger, func(ctx context.Context, principal authorization.Principal, input instance.ReadServerConfigInput) (map[string]serverconfig.ConfigEntry, error) {
-			return m.zomboidInstanceManager.ReadServerConfig(ctx, principal, input)
+		Handler: withUserRecover(m.logger, func(ctx context.Context, principal authorization.Principal, input ReadConfigInput) (map[string]config.ConfigEntry, error) {
+			var keyFilters []string = nil
+			if input.Keys != nil {
+				keyFilters = *input.Keys
+			}
+
+			return m.zomboidInstanceManager.ReadServerConfig(ctx, principal, instance.ReadServerConfigInput{
+				InstanceID: input.InstanceId,
+				KeyFilters: keyFilters,
+			})
 		}),
 	}
 }

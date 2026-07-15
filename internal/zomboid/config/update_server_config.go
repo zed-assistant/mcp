@@ -1,4 +1,4 @@
-package serverconfig
+package config
 
 import (
 	"fmt"
@@ -17,7 +17,7 @@ func NewInvalidKeysError(invalidKeys []string) *domainerror.DomainError {
 	}
 }
 
-func (m *ServerConfigManager) UpdateConfig(instanceHomeDir string, newConfig map[string]string) error {
+func (m *ServerConfigManager) UpdateServerConfig(instanceHomeDir string, newConfig map[string]string) error {
 	iniFile, iniPath, err := loadIni(instanceHomeDir)
 	if err != nil {
 		return fmt.Errorf("failed to load ini file for update: %w", err)

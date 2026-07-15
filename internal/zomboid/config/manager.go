@@ -1,4 +1,4 @@
-package serverconfig
+package config
 
 import (
 	"path/filepath"
@@ -11,7 +11,7 @@ var leadingCommentPrefix = regexp.MustCompile(`(?m)^#? *`)
 
 type ServerConfigManager struct{}
 
-func NewServerConfigManager() *ServerConfigManager {
+func NewConfigManager() *ServerConfigManager {
 	return &ServerConfigManager{}
 }
 
@@ -32,23 +32,4 @@ func loadIni(instanceHomeDir string) (*ini.File, string, error) {
 	ini.PrettyFormat = false
 
 	return iniFile, iniPath, nil
-}
-
-func stripCommentPrefix(s string) string {
-	return leadingCommentPrefix.ReplaceAllString(s, "")
-}
-
-func readConfigAsEntriesMap(iniFile *ini.File) map[string]ConfigEntry {
-	configEntries := make(map[string]ConfigEntry)
-	section, _ := iniFile.GetSection(ini.DefaultSection)
-
-	for _, key := range section.Keys() {
-		configEntries[key.Name()] = ConfigEntry{
-			Key:         key.Name(),
-			Value:       key.Value(),
-			Description: stripCommentPrefix(key.Comment),
-		}
-	}
-
-	return configEntries
 }

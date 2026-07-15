@@ -6,14 +6,15 @@ import (
 
 	"github.com/zed-assistant/mcp/internal/auth/authorization"
 	"github.com/zed-assistant/mcp/internal/logger"
-	serverconfig "github.com/zed-assistant/mcp/internal/zomboid/server_config"
+	"github.com/zed-assistant/mcp/internal/zomboid/config"
 )
 
 type ReadServerConfigInput struct {
-	InstanceID string `json:"instanceId" jsonschema:"The ID of the Project Zomboid server instance to read the config for" validate:"required"`
+	InstanceID string
+	KeyFilters []string
 }
 
-func (m *ZomboidInstanceManager) ReadServerConfig(ctx context.Context, principal authorization.Principal, input ReadServerConfigInput) (map[string]serverconfig.ConfigEntry, error) {
+func (m *ZomboidInstanceManager) ReadServerConfig(ctx context.Context, principal authorization.Principal, input ReadServerConfigInput) (map[string]config.ConfigEntry, error) {
 	if err := m.instanceAuth.AuthorizeInstanceAccess(input.InstanceID, principal); err != nil {
 		return nil, err
 	}
@@ -23,7 +24,7 @@ func (m *ZomboidInstanceManager) ReadServerConfig(ctx context.Context, principal
 
 	instanceCfg := m.appConfig.Zomboid.Instances[input.InstanceID]
 
-	return m.serverConfigManager.ReadServerConfig(instanceCfg.HomeDir)
+	return m.serverConfigManager.ReadServerConfig(instanceCfg.HomeDir, input.KeyFilters)
 }
 
 type UpdateServerConfigInput struct {
@@ -43,7 +44,7 @@ func (m *ZomboidInstanceManager) UpdateServerConfig(ctx context.Context, princip
 
 	m.log.InfoContext(ctx, fmt.Sprintf("Updating server config for instance %s (%s)", input.InstanceID, instanceCfg.Name))
 
-	if err := m.serverConfigManager.UpdateConfig(instanceCfg.HomeDir, input.Updates); err != nil {
+	if err := m.serverConfigManager.UpdateServerConfig(instanceCfg.HomeDir, input.Updates); err != nil {
 		m.log.Error("Server config update failed", logger.LogError(err))
 		return err
 	}
