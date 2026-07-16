@@ -47,6 +47,9 @@ func (c *AppConfig) validate() error {
 		if instance.HomeDir == "" {
 			errs = append(errs, fmt.Errorf("zomboid.instances[%s].home_dir must be set", id))
 		}
+		if instance.RCONHost == "" {
+			errs = append(errs, fmt.Errorf("zomboid.instances[%s].rcon_host must be set", id))
+		}
 		if len(instance.Users) == 0 {
 			errs = append(errs, fmt.Errorf("zomboid.instances[%s].users must contain at least one user", id))
 		}

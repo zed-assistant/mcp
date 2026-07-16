@@ -18,7 +18,7 @@ func NewInvalidKeysError(invalidKeys []string) *domainerror.DomainError {
 	}
 }
 
-func (m *ServerConfigManager) UpdateServerConfig(instanceConfig configuration.ZomboidInstanceConfig, newConfig map[string]string) error {
+func (m *ConfigManager) UpdateServerConfig(instanceConfig *configuration.ZomboidInstanceConfig, newConfig map[string]string) error {
 	iniFile, iniPath, err := loadIni(instanceConfig.HomeDir, instanceConfig.ServerName)
 	if err != nil {
 		return fmt.Errorf("failed to load ini file for update: %w", err)

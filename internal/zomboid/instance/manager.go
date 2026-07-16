@@ -5,6 +5,7 @@ import (
 
 	"github.com/zed-assistant/mcp/internal/auth/authorization"
 	"github.com/zed-assistant/mcp/internal/configuration"
+	admincommand "github.com/zed-assistant/mcp/internal/zomboid/admin_command"
 	"github.com/zed-assistant/mcp/internal/zomboid/config"
 )
 
@@ -20,8 +21,8 @@ type LockManager interface {
 }
 
 type ConfigManager interface {
-	ReadServerConfig(instanceConfig configuration.ZomboidInstanceConfig, keysFilter []string) (map[string]config.ConfigEntry, error)
-	UpdateServerConfig(instanceConfig configuration.ZomboidInstanceConfig, newConfig map[string]string) error
+	ReadServerConfig(instanceConfig *configuration.ZomboidInstanceConfig, keysFilter []string) (map[string]config.ConfigEntry, error)
+	UpdateServerConfig(instanceConfig *configuration.ZomboidInstanceConfig, newConfig map[string]string) error
 }
 
 type ZomboidInstanceManager struct {
@@ -30,6 +31,7 @@ type ZomboidInstanceManager struct {
 	instanceLockManager LockManager
 	serverConfigManager ConfigManager
 	log                 *slog.Logger
+	adminCommandManager admincommand.AdminCommandManager
 }
 
 func NewZomboidInstanceManager(
@@ -38,6 +40,7 @@ func NewZomboidInstanceManager(
 	instanceLockManager LockManager,
 	serverConfigManager ConfigManager,
 	log *slog.Logger,
+	adminCommandManager admincommand.AdminCommandManager,
 ) *ZomboidInstanceManager {
 	return &ZomboidInstanceManager{
 		appConfig:           appConfig,
@@ -45,5 +48,6 @@ func NewZomboidInstanceManager(
 		instanceLockManager: instanceLockManager,
 		serverConfigManager: serverConfigManager,
 		log:                 log,
+		adminCommandManager: adminCommandManager,
 	}
 }

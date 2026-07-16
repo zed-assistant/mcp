@@ -20,6 +20,7 @@ import (
 	mcptool "github.com/zed-assistant/mcp/internal/mcp_tool"
 	"github.com/zed-assistant/mcp/internal/random"
 	"github.com/zed-assistant/mcp/internal/request"
+	admincommand "github.com/zed-assistant/mcp/internal/zomboid/admin_command"
 	"github.com/zed-assistant/mcp/internal/zomboid/config"
 	"github.com/zed-assistant/mcp/internal/zomboid/instance"
 )
@@ -54,7 +55,8 @@ func newServerDeps(appConfig *configuration.AppConfig, log *slog.Logger) (*serve
 	authManger := authorization.NewAuthorizationManager(appConfig, oauthProvider)
 	instanceLockManager := instance.NewInstanceLockManager()
 	configManager := config.NewConfigManager()
-	zomboidInstanceManager := instance.NewZomboidInstanceManager(appConfig, instanceAuth, instanceLockManager, configManager, log)
+	adminCommandManager := admincommand.NewAdminCommandRCON(configManager)
+	zomboidInstanceManager := instance.NewZomboidInstanceManager(appConfig, instanceAuth, instanceLockManager, configManager, log, adminCommandManager)
 	toolsManager := mcptool.NewMcpToolManager(log, zomboidInstanceManager)
 	mcp := mcpapi.NewMcpApi(log, authManger, appConfig, toolsManager)
 

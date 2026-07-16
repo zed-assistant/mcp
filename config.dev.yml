@@ -12,10 +12,12 @@ zomboid:
     "aaa":
       name: "foo"
       home_dir: "/tmp/foo"
+      rcon_host: "localhost"
       users:
         - "admin@example.com"
     "bbb":
       name: "bar"
       home_dir: "/tmp/bar"
+      rcon_host: "localhost"
       users:
         - "user@example.com"

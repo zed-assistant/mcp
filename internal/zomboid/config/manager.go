@@ -9,10 +9,10 @@ import (
 
 var leadingCommentPrefix = regexp.MustCompile(`(?m)^#? *`)
 
-type ServerConfigManager struct{}
+type ConfigManager struct{}
 
-func NewConfigManager() *ServerConfigManager {
-	return &ServerConfigManager{}
+func NewConfigManager() *ConfigManager {
+	return &ConfigManager{}
 }
 
 func getIniPath(instanceHomeDir string, serverName string) string {

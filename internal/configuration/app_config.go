@@ -39,6 +39,7 @@ type ZomboidInstanceConfig struct {
 	Name       string   `koanf:"name"`
 	HomeDir    string   `koanf:"home_dir"`
 	ServerName string   `koanf:"server_name"`
+	RCONHost   string   `koanf:"rcon_host"`
 	Users      []string `koanf:"users"`
 }
 

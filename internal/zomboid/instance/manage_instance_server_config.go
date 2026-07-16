@@ -6,6 +6,7 @@ import (
 
 	"github.com/zed-assistant/mcp/internal/auth/authorization"
 	"github.com/zed-assistant/mcp/internal/logger"
+	admincommand "github.com/zed-assistant/mcp/internal/zomboid/admin_command"
 	"github.com/zed-assistant/mcp/internal/zomboid/config"
 )
 
@@ -24,7 +25,7 @@ func (m *ZomboidInstanceManager) ReadServerConfig(ctx context.Context, principal
 
 	instanceCfg := m.appConfig.Zomboid.Instances[input.InstanceID]
 
-	return m.serverConfigManager.ReadServerConfig(instanceCfg, input.KeyFilters)
+	return m.serverConfigManager.ReadServerConfig(&instanceCfg, input.KeyFilters)
 }
 
 type UpdateServerConfigInput struct {
@@ -45,12 +46,22 @@ func (m *ZomboidInstanceManager) UpdateServerConfig(ctx context.Context, princip
 
 	m.log.InfoContext(ctx, fmt.Sprintf("Updating server config for instance %s (%s)", input.InstanceID, instanceCfg.Name))
 
-	if err := m.serverConfigManager.UpdateServerConfig(instanceCfg, input.Updates); err != nil {
+	if err := m.serverConfigManager.UpdateServerConfig(&instanceCfg, input.Updates); err != nil {
 		m.log.Error("Server config update failed", logger.LogError(err))
 		return nil, err
 	}
 
 	m.log.InfoContext(ctx, fmt.Sprintf("Server config updated successfully for instance %s (%s)", input.InstanceID, instanceCfg.Name))
 
-	return m.serverConfigManager.ReadServerConfig(instanceCfg, nil)
+	if input.ApplyLive {
+		m.log.InfoContext(ctx, fmt.Sprintf("Applying server config changes live for instance %s (%s)", input.InstanceID, instanceCfg.Name))
+		_, err := admincommand.ExecuteSingleAdminCommand(m.adminCommandManager, &instanceCfg, &admincommand.ReloadOptionsAdminCommand{})
+		if err != nil {
+			m.log.Error("Failed to apply server config changes live", logger.LogError(err))
+			return nil, err
+		}
+		m.log.InfoContext(ctx, fmt.Sprintf("Server config changes applied live successfully for instance %s (%s)", input.InstanceID, instanceCfg.Name))
+	}
+
+	return m.serverConfigManager.ReadServerConfig(&instanceCfg, nil)
 }

@@ -45,7 +45,7 @@ func readServerConfigAsEntriesMap(iniFile *ini.File, keyFilters []string) (map[s
 	return configEntries, nil
 }
 
-func (m *ServerConfigManager) ReadServerConfig(instanceConfig configuration.ZomboidInstanceConfig, keysFilter []string) (map[string]ConfigEntry, error) {
+func (m *ConfigManager) ReadServerConfig(instanceConfig *configuration.ZomboidInstanceConfig, keysFilter []string) (map[string]ConfigEntry, error) {
 	iniFile, _, err := loadIni(instanceConfig.HomeDir, instanceConfig.ServerName)
 	if err != nil {
 		return nil, fmt.Errorf("Unable to load ini file for reading: %w", err)
