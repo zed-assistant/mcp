@@ -15,12 +15,12 @@ func NewConfigManager() *ServerConfigManager {
 	return &ServerConfigManager{}
 }
 
-func getIniPath(instanceHomeDir string) string {
-	return filepath.Join(instanceHomeDir, "Server", "servertest.ini")
+func getIniPath(instanceHomeDir string, serverName string) string {
+	return filepath.Join(instanceHomeDir, "Server", serverName+".ini")
 }
 
-func loadIni(instanceHomeDir string) (*ini.File, string, error) {
-	iniPath := getIniPath(instanceHomeDir)
+func loadIni(instanceHomeDir string, serverName string) (*ini.File, string, error) {
+	iniPath := getIniPath(instanceHomeDir, serverName)
 	cfg := ini.LoadOptions{
 		IgnoreInlineComment: true,
 	}

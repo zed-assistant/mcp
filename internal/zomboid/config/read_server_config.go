@@ -3,6 +3,7 @@ package config
 import (
 	"fmt"
 
+	"github.com/zed-assistant/mcp/internal/configuration"
 	stringcompare "github.com/zed-assistant/mcp/internal/string_compare"
 	"gopkg.in/ini.v1"
 )
@@ -44,8 +45,8 @@ func readServerConfigAsEntriesMap(iniFile *ini.File, keyFilters []string) (map[s
 	return configEntries, nil
 }
 
-func (m *ServerConfigManager) ReadServerConfig(instanceHomeDir string, keysFilter []string) (map[string]ConfigEntry, error) {
-	iniFile, _, err := loadIni(instanceHomeDir)
+func (m *ServerConfigManager) ReadServerConfig(instanceConfig configuration.ZomboidInstanceConfig, keysFilter []string) (map[string]ConfigEntry, error) {
+	iniFile, _, err := loadIni(instanceConfig.HomeDir, instanceConfig.ServerName)
 	if err != nil {
 		return nil, fmt.Errorf("Unable to load ini file for reading: %w", err)
 	}

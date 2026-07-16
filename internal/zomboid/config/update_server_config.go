@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/zed-assistant/mcp/internal/configuration"
 	domainerror "github.com/zed-assistant/mcp/internal/domain_error"
 	"gopkg.in/ini.v1"
 )
@@ -17,8 +18,8 @@ func NewInvalidKeysError(invalidKeys []string) *domainerror.DomainError {
 	}
 }
 
-func (m *ServerConfigManager) UpdateServerConfig(instanceHomeDir string, newConfig map[string]string) error {
-	iniFile, iniPath, err := loadIni(instanceHomeDir)
+func (m *ServerConfigManager) UpdateServerConfig(instanceConfig configuration.ZomboidInstanceConfig, newConfig map[string]string) error {
+	iniFile, iniPath, err := loadIni(instanceConfig.HomeDir, instanceConfig.ServerName)
 	if err != nil {
 		return fmt.Errorf("failed to load ini file for update: %w", err)
 	}

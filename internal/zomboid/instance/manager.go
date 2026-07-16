@@ -20,8 +20,8 @@ type LockManager interface {
 }
 
 type ConfigManager interface {
-	ReadServerConfig(instanceID string, keysFilter []string) (map[string]config.ConfigEntry, error)
-	UpdateServerConfig(instanceHomeDir string, newConfig map[string]string) error
+	ReadServerConfig(instanceConfig configuration.ZomboidInstanceConfig, keysFilter []string) (map[string]config.ConfigEntry, error)
+	UpdateServerConfig(instanceConfig configuration.ZomboidInstanceConfig, newConfig map[string]string) error
 }
 
 type ZomboidInstanceManager struct {

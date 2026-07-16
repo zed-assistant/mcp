@@ -33,10 +33,13 @@ type OAuth2IDPLocalConfig struct {
 	Users []LocalUserConfig `koanf:"users"`
 }
 
+const defaultServerName = "servertest"
+
 type ZomboidInstanceConfig struct {
-	Name    string   `koanf:"name"`
-	HomeDir string   `koanf:"home_dir"`
-	Users   []string `koanf:"users"`
+	Name       string   `koanf:"name"`
+	HomeDir    string   `koanf:"home_dir"`
+	ServerName string   `koanf:"server_name"`
+	Users      []string `koanf:"users"`
 }
 
 type ZomboidConfig struct {
@@ -48,4 +51,13 @@ type AppConfig struct {
 	Server  ServerConfig  `koanf:"server"`
 	OAuth2  OAuth2Config  `koanf:"oauth2"`
 	Zomboid ZomboidConfig `koanf:"zomboid"`
+}
+
+func (c *AppConfig) applyDefaults() {
+	for id, instance := range c.Zomboid.Instances {
+		if instance.ServerName == "" {
+			instance.ServerName = defaultServerName
+			c.Zomboid.Instances[id] = instance
+		}
+	}
 }

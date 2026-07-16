@@ -49,6 +49,8 @@ func Load(path string) (*AppConfig, error) {
 		return nil, fmt.Errorf("unmarshalling config: %w", err)
 	}
 
+	config.applyDefaults()
+
 	if err := config.validate(); err != nil {
 		return nil, fmt.Errorf("validating config: %w", err)
 	}
