@@ -17,8 +17,8 @@ func (m *ZomboidInstanceManager) ExecuteRawAdminCommand(ctx context.Context, pri
 		return "", err
 	}
 
-	m.instanceLockManager.RLock(input.InstanceID)
-	defer m.instanceLockManager.RUnlock(input.InstanceID)
+	m.instanceLockManager.Lock(input.InstanceID)
+	defer m.instanceLockManager.Unlock(input.InstanceID)
 
 	instanceCfg := m.appConfig.Zomboid.Instances[input.InstanceID]
 
