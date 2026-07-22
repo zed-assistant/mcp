@@ -43,6 +43,7 @@ func (m *McpToolManager) CollectTools() []Tool {
 		m.UpdateZomboidServerConfig(),
 		m.ExecuteRawAdminCommand(),
 		m.GetServerStatus(),
+		m.BroadcastServerMessage(),
 	}
 }
 
