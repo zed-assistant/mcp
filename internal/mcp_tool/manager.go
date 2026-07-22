@@ -44,6 +44,7 @@ func (m *McpToolManager) CollectTools() []Tool {
 		m.ExecuteRawAdminCommand(),
 		m.GetServerStatus(),
 		m.BroadcastServerMessage(),
+		m.ModeratePlayer(),
 	}
 }
 
@@ -136,6 +137,9 @@ func withUser[In, Out any](log *slog.Logger, h userToolFunc[In, Out],
 		if err != nil {
 			log.ErrorContext(ctx, "Tool handler returned an error", logger.LogError(err))
 			if domainErr, ok := errors.AsType[*domainerror.DomainError](err); ok {
+				return nil, zero, errors.New(domainErr.PublicMessage)
+			}
+			if domainErr, ok := errors.AsType[domainerror.DomainError](err); ok {
 				return nil, zero, errors.New(domainErr.PublicMessage)
 			}
 			return nil, zero, errors.New("internal error")
