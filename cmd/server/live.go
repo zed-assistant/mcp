@@ -22,7 +22,9 @@ import (
 	"github.com/zed-assistant/mcp/internal/request"
 	admincommand "github.com/zed-assistant/mcp/internal/zomboid/admin_command"
 	"github.com/zed-assistant/mcp/internal/zomboid/config"
+	gamedatabase "github.com/zed-assistant/mcp/internal/zomboid/game_database"
 	"github.com/zed-assistant/mcp/internal/zomboid/instance"
+	"github.com/zed-assistant/mcp/internal/zomboid/whitelist"
 )
 
 func newServerDeps(appConfig *configuration.AppConfig, log *slog.Logger) (*serverDeps, error) {
@@ -56,7 +58,9 @@ func newServerDeps(appConfig *configuration.AppConfig, log *slog.Logger) (*serve
 	instanceLockManager := instance.NewInstanceLockManager()
 	configManager := config.NewConfigManager()
 	adminCommandManager := admincommand.NewAdminCommandRCON(configManager)
-	zomboidInstanceManager := instance.NewZomboidInstanceManager(appConfig, instanceAuth, instanceLockManager, configManager, log, adminCommandManager)
+	gamedataManager := gamedatabase.NewGameDatabaseManager()
+	whitelistManager := whitelist.NewWhitelistManager(gamedataManager)
+	zomboidInstanceManager := instance.NewZomboidInstanceManager(appConfig, instanceAuth, instanceLockManager, configManager, log, adminCommandManager, whitelistManager)
 	toolsManager := mcptool.NewMcpToolManager(log, zomboidInstanceManager)
 	mcp := mcpapi.NewMcpApi(log, authManger, appConfig, toolsManager)
 

@@ -6,14 +6,18 @@ import (
 	"fmt"
 	"net"
 	"strconv"
+	"time"
 
 	"github.com/zed-assistant/mcp/internal/auth/authorization"
+	"github.com/zed-assistant/mcp/internal/configuration"
 	admincommand "github.com/zed-assistant/mcp/internal/zomboid/admin_command"
 )
 
 type ServerStatusPlayer struct {
-	Username    string `json:"username" jsonschema:"The username of the player"`
-	AccessLevel string `json:"accessLevel" jsonschema:"The access level of the player"`
+	Username    string     `json:"username" jsonschema:"The username of the player"`
+	Role        string     `json:"role,omitempty" jsonschema:"The role of the player"`
+	ConnectedAt *time.Time `json:"connectedAt,omitempty" jsonschema:"The time the player connected to the server"`
+	SteamID     string     `json:"steamId,omitempty" jsonschema:"The Steam ID of the player"`
 }
 
 type ServerStatus struct {
@@ -52,10 +56,9 @@ func (m *ZomboidInstanceManager) GetServerStatus(ctx context.Context, principal 
 
 	playersList := make([]ServerStatusPlayer, 0, len(players))
 	if isOnline {
-		for _, player := range players {
-			playersList = append(playersList, ServerStatusPlayer{
-				Username: player,
-			})
+		playersList, err = m.mapOnlinePlayersToServerStatusPlayers(ctx, instanceCfg, players)
+		if err != nil {
+			return nil, fmt.Errorf("failed to map online players to server status players: %w", err)
 		}
 	}
 
@@ -79,4 +82,35 @@ func (m *ZomboidInstanceManager) GetServerStatus(ctx context.Context, principal 
 		PlayerCount: len(players),
 		MaxPlayers:  numberOfMaxPlayers,
 	}, nil
+}
+
+func (m *ZomboidInstanceManager) mapOnlinePlayersToServerStatusPlayers(ctx context.Context, instanceConfig configuration.ZomboidInstanceConfig, players []string) ([]ServerStatusPlayer, error) {
+	if len(players) == 0 {
+		return []ServerStatusPlayer{}, nil
+	}
+
+	allUsers, err := m.whitelistManager.GetAllUsers(ctx, instanceConfig)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get all users: %w", err)
+	}
+
+	index := make(map[string]int, len(allUsers))
+	for i := range allUsers {
+		index[allUsers[i].Username] = i
+	}
+
+	results := make([]ServerStatusPlayer, 0, len(players))
+	for _, name := range players {
+		r := ServerStatusPlayer{Username: name}
+		if i, ok := index[name]; ok {
+			u := allUsers[i]
+			r.Role = u.RoleName
+			r.ConnectedAt = u.LastConnection
+			r.SteamID = u.SteamID
+		}
+		results = append(results, r)
+	}
+
+	return results, nil
+
 }

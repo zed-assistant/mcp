@@ -1,12 +1,14 @@
 package instance
 
 import (
+	"context"
 	"log/slog"
 
 	"github.com/zed-assistant/mcp/internal/auth/authorization"
 	"github.com/zed-assistant/mcp/internal/configuration"
 	admincommand "github.com/zed-assistant/mcp/internal/zomboid/admin_command"
 	"github.com/zed-assistant/mcp/internal/zomboid/config"
+	"github.com/zed-assistant/mcp/internal/zomboid/whitelist"
 )
 
 type InstanceAuth interface {
@@ -25,6 +27,10 @@ type ConfigManager interface {
 	UpdateServerConfig(instanceConfig *configuration.ZomboidInstanceConfig, newConfig map[string]string) error
 }
 
+type WhitelistManager interface {
+	GetAllUsers(ctx context.Context, instanceConfig configuration.ZomboidInstanceConfig) ([]*whitelist.User, error)
+}
+
 type ZomboidInstanceManager struct {
 	appConfig           *configuration.AppConfig
 	instanceAuth        InstanceAuth
@@ -32,6 +38,7 @@ type ZomboidInstanceManager struct {
 	serverConfigManager ConfigManager
 	log                 *slog.Logger
 	adminCommandManager admincommand.AdminCommandManager
+	whitelistManager    WhitelistManager
 }
 
 func NewZomboidInstanceManager(
@@ -41,6 +48,7 @@ func NewZomboidInstanceManager(
 	serverConfigManager ConfigManager,
 	log *slog.Logger,
 	adminCommandManager admincommand.AdminCommandManager,
+	whitelistManager WhitelistManager,
 ) *ZomboidInstanceManager {
 	return &ZomboidInstanceManager{
 		appConfig:           appConfig,
@@ -49,5 +57,6 @@ func NewZomboidInstanceManager(
 		serverConfigManager: serverConfigManager,
 		log:                 log,
 		adminCommandManager: adminCommandManager,
+		whitelistManager:    whitelistManager,
 	}
 }
