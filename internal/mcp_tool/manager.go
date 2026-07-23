@@ -46,6 +46,7 @@ func (m *McpToolManager) CollectTools() []Tool {
 		m.BroadcastServerMessage(),
 		m.ModeratePlayer(),
 		m.GetGameLogs(),
+		m.ManageUserAccount(),
 	}
 }
 
