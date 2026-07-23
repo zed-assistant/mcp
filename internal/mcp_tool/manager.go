@@ -47,6 +47,7 @@ func (m *McpToolManager) CollectTools() []Tool {
 		m.ModeratePlayer(),
 		m.GetGameLogs(),
 		m.ManageUserAccount(),
+		m.ManagePlayerState(),
 	}
 }
 
