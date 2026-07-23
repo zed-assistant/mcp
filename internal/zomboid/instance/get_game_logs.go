@@ -12,7 +12,7 @@ import (
 	filesystem "github.com/zed-assistant/mcp/internal/file_system"
 )
 
-const gameLogFileName = "server-console.txt"
+var gameLogFileNames = []string{"server-console.txt", "console.txt"}
 
 type GetGameLogsInput struct {
 	InstanceID string
@@ -29,15 +29,14 @@ func (m *ZomboidInstanceManager) GetGameLogs(ctx context.Context, principal auth
 	defer m.instanceLockManager.RUnlock(input.InstanceID)
 
 	instanceCfg := m.appConfig.Zomboid.Instances[input.InstanceID]
-	logPath := filepath.Join(instanceCfg.HomeDir, gameLogFileName)
 
-	logFileExists, err := filesystem.FileExists(logPath)
+	logPath, err := findGameLogFile(instanceCfg.HomeDir)
 	if err != nil {
 		return nil, fmt.Errorf("failed to check game log file: %w", err)
 	}
-	if !logFileExists {
+	if logPath == "" {
 		return nil, &domainerror.DomainError{
-			InternalMessage: fmt.Sprintf("game log file does not exist: %s", logPath),
+			InternalMessage: fmt.Sprintf("none of %v exist in %s", gameLogFileNames, instanceCfg.HomeDir),
 			PublicMessage:   "Game log file was not found for this server instance",
 			InternalCode:    domainerror.NotFound,
 		}
@@ -57,8 +56,20 @@ func (m *ZomboidInstanceManager) GetGameLogs(ctx context.Context, principal auth
 	return lines, nil
 }
 
-// compileLineFilter builds a case-insensitive, unanchored matcher from pattern: plain text is matched as a
-// substring anywhere in the line, and * matches any run of characters, e.g. "wa*n" matches "warn".
+func findGameLogFile(homeDir string) (string, error) {
+	for _, name := range gameLogFileNames {
+		path := filepath.Join(homeDir, name)
+		exists, err := filesystem.FileExists(path)
+		if err != nil {
+			return "", err
+		}
+		if exists {
+			return path, nil
+		}
+	}
+	return "", nil
+}
+
 func compileLineFilter(pattern string) *regexp.Regexp {
 	parts := strings.Split(pattern, "*")
 	var sb strings.Builder
