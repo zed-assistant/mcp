@@ -45,6 +45,7 @@ func (m *McpToolManager) CollectTools() []Tool {
 		m.GetServerStatus(),
 		m.BroadcastServerMessage(),
 		m.ModeratePlayer(),
+		m.GetGameLogs(),
 	}
 }
 
