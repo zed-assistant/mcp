@@ -25,6 +25,8 @@ type LockManager interface {
 type ConfigManager interface {
 	ReadServerConfig(instanceConfig *configuration.ZomboidInstanceConfig, keysFilter []string) (map[string]config.ConfigEntry, error)
 	UpdateServerConfig(instanceConfig *configuration.ZomboidInstanceConfig, newConfig map[string]string) error
+	ReadSandboxConfig(instanceConfig *configuration.ZomboidInstanceConfig, keysFilter []string) (map[string]any, error)
+	UpdateSandboxConfig(instanceConfig *configuration.ZomboidInstanceConfig, updates map[string]any) error
 }
 
 type WhitelistManager interface {

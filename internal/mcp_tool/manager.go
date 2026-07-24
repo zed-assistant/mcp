@@ -39,8 +39,8 @@ func NewMcpToolManager(logger *slog.Logger, zomboidInstanceManager *instance.Zom
 func (m *McpToolManager) CollectTools() []Tool {
 	return []Tool{
 		m.ListZomboidInstances(),
-		m.ReadZomboidServerConfig(),
-		m.UpdateZomboidServerConfig(),
+		m.ReadZomboidConfig(),
+		m.UpdateZomboidConfig(),
 		m.ExecuteRawAdminCommand(),
 		m.GetServerStatus(),
 		m.BroadcastServerMessage(),

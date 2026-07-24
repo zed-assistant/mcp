@@ -9,6 +9,33 @@ import (
 	"gopkg.in/ini.v1"
 )
 
+// FlattenServerConfigUpdates validates a (possibly nested) update tree for
+// configType=server: ini config has no groups, so every value must be a plain
+// JSON string. It collects every problem before returning, matching the
+// reject-before-applying-anything behavior used for sandbox config.
+func FlattenServerConfigUpdates(updates map[string]any) (map[string]string, error) {
+	flat := make(map[string]string, len(updates))
+	var problems []string
+
+	for key, rawVal := range updates {
+		strVal, ok := rawVal.(string)
+		if !ok {
+			if _, isNested := rawVal.(map[string]any); isNested {
+				problems = append(problems, fmt.Sprintf("'%s': nested values are not supported for server config", key))
+			} else {
+				problems = append(problems, fmt.Sprintf("'%s': value must be provided as a JSON string, got %s", key, jsonTypeName(rawVal)))
+			}
+			continue
+		}
+		flat[key] = strVal
+	}
+
+	if len(problems) > 0 {
+		return nil, NewInvalidConfigUpdateError(problems)
+	}
+	return flat, nil
+}
+
 func NewInvalidKeysError(invalidKeys []string) *domainerror.DomainError {
 	keys := strings.Join(invalidKeys, ", ")
 	return &domainerror.DomainError{
