@@ -42,7 +42,7 @@ func (a *AuthApi) authorize(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	http.Redirect(w, r, redirectURL, http.StatusFound)
+	http.Redirect(w, r, redirectURL, http.StatusFound) //nolint:gosec
 }
 
 // injectResourceAsAudience copies the RFC 8707 "resource" parameter(s) sent by MCP

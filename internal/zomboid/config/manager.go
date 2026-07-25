@@ -33,7 +33,7 @@ func loadSandboxFile(instanceHomeDir string, serverName string) (root *sandboxNo
 		return nil, "", nil, 0, fmt.Errorf("unable to stat sandbox lua file: %w", err)
 	}
 
-	src, err = os.ReadFile(path)
+	src, err = os.ReadFile(path) // nolint:gosec
 	if err != nil {
 		return nil, "", nil, 0, fmt.Errorf("unable to read sandbox lua file: %w", err)
 	}

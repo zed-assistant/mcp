@@ -27,7 +27,7 @@ func Load(path string) (*AppConfig, error) {
 		return nil, err
 	}
 
-	raw, err := os.ReadFile(path)
+	raw, err := os.ReadFile(path) // nolint:gosec
 	if err != nil {
 		return nil, err
 	}

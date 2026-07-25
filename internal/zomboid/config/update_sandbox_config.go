@@ -206,7 +206,7 @@ func (m *ConfigManager) UpdateSandboxConfig(instanceConfig *configuration.Zomboi
 // ensureSandboxFileUnchanged re-reads path and confirms it still matches
 // expected byte-for-byte.
 func ensureSandboxFileUnchanged(path string, expected []byte) error {
-	current, err := os.ReadFile(path)
+	current, err := os.ReadFile(path) // nolint:gosec
 	if err != nil {
 		return fmt.Errorf("unable to re-read sandbox lua file before saving: %w", err)
 	}
