@@ -17,7 +17,9 @@ func ReadLinesFromEnd(path string, maxLines int, match func(line string) bool) (
 	if err != nil {
 		return nil, err
 	}
-	defer f.Close()
+	defer func() {
+		_ = f.Close()
+	}()
 
 	info, err := f.Stat()
 	if err != nil {

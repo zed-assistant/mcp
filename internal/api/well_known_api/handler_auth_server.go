@@ -10,5 +10,5 @@ func (a *WellKnownApi) getMCPProtectedResourceMetadata(w http.ResponseWriter, _ 
 		"bearer_methods_supported": []string{"header"},
 	}
 
-	writeWellKnownJSON(w, metadata)
+	a.writeWellKnownJSON(w, metadata)
 }

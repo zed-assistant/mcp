@@ -51,7 +51,7 @@ func newServerDeps(appConfig *configuration.AppConfig, log *slog.Logger) (*serve
 	localIDP := localidp.NewLocalIDP(appConfig, idpManager)
 	auth := authapi.NewAuthApi(appConfig, oauthProvider, oauthStore, pendingAuthStore, log, idpManager, localIDP, time.Now)
 
-	wellKnown := wellknownapi.NewWellKnownApi(appConfig)
+	wellKnown := wellknownapi.NewWellKnownApi(appConfig, log)
 
 	instanceAuth := instanceauth.NewInstanceAuthorization(appConfig)
 	authManger := authorization.NewAuthorizationManager(appConfig, oauthProvider)

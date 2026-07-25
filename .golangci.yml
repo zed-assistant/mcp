@@ -1,0 +1,135 @@
+version: "2"
+run:
+  modules-download-mode: readonly
+linters:
+  enable:
+    - asasalint
+    - bodyclose
+    - canonicalheader
+    - containedctx
+    - contextcheck
+    - copyloopvar
+    - decorder
+    - dupl
+    - durationcheck
+    - embeddedstructfieldcheck
+    - errchkjson
+    - errname
+    - errorlint
+    - exhaustive
+    - fatcontext
+    - forcetypeassert
+    - gocheckcompilerdirectives
+    - gocognit
+    - gocritic
+    - gosec
+    - gosmopolitan
+    - inamedparam
+    - ineffassign
+    - intrange
+    - iotamixing
+    - ireturn
+    - loggercheck
+    - maintidx
+    - makezero
+    - mirror
+    - misspell
+    - modernize
+    - musttag
+    - nakedret
+    - nilerr
+    - nilnesserr
+    - noctx
+    - nosprintfhostport
+    - paralleltest
+    - perfsprint
+    - prealloc
+    - predeclared
+    - promlinter
+    - reassign
+    - recvcheck
+    - rowserrcheck
+    - sloglint
+    - spancheck
+    - sqlclosecheck
+    - staticcheck
+    - tagliatelle
+    - testifylint
+    - testpackage
+    - tparallel
+    - unconvert
+    - unqueryvet
+    - usestdlibvars
+    - usetesting
+    - wastedassign
+    # - wrapcheck
+  settings:
+    bodyclose:
+      check-consumption: true
+    exhaustive:
+      check:
+        - switch
+        - map
+      default-signifies-exhaustive: false
+    gocritic:
+      enabled-checks:
+        - appendCombine
+        - badLock
+        - badRegexp
+        - badSorting
+        - boolExprSimplify
+        - builtinShadow
+        - builtinShadowDecl
+        - commentedOutCode
+        - commentedOutImport
+        - deferInLoop
+        - deferUnlambda
+        - dupImport
+        - dynamicFmtString
+        - equalFold
+        - externalErrorReassign
+        - filepathJoin
+        - hexLiteral
+        - httpNoBody
+        - importShadow
+        - nestingReduce
+        - nilValReturn
+        - octalLiteral
+        - preferFilepathJoin
+        - preferFprint
+        - regexpPattern
+        - regexpSimplify
+        - returnAfterHttpError
+        - sliceClear
+        - sloppyReassign
+        - sortSlice
+        - sprintfQuotedString
+        - sqlQuery
+        - stringConcatSimplify
+        - stringXbytes
+        - syncMapLoadAndDelete
+        - timeExprSimplify
+        - tooManyResultsChecker
+        - truncateCmp
+        - uncheckedInlineErr
+        - unnecessaryDefer
+        - weakCond
+        - yodaStyleExpr
+    ireturn:
+      allow:
+        - 'bibiliogar.com/api/internal/gen/.*'
+        - 'error'
+        - 'context.Context'
+    loggercheck:
+      require-string-key: true
+    sloglint:
+      attr-only: true
+      key-naming-case: camel
+      context: all
+    spancheck:
+      checks:
+        - end
+        - record-error
+        - set-status
+    testifylint:
+      enable-all: true

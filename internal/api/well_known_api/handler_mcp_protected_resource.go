@@ -17,5 +17,5 @@ func (a *WellKnownApi) getAuthServerdMetadata(w http.ResponseWriter, _ *http.Req
 		"client_id_metadata_document_supported": true,
 	}
 
-	writeWellKnownJSON(w, metadata)
+	a.writeWellKnownJSON(w, metadata)
 }

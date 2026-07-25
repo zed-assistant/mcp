@@ -2,6 +2,7 @@ package authapi
 
 import (
 	"context"
+	"errors"
 	"net/http"
 	"net/url"
 
@@ -17,7 +18,7 @@ func (a *AuthApi) authenticationCallback(w http.ResponseWriter, r *http.Request)
 	callbackCookie, err := r.Cookie(idp.IDPCallbackCookieName)
 	ctx := r.Context()
 	if err != nil {
-		if err == http.ErrNoCookie {
+		if errors.Is(err, http.ErrNoCookie) {
 			a.log.WarnContext(ctx, "Missing callback cookie")
 			a.writeHTMLResponse(ctx, w, http.StatusOK, "<b>Authentication failed</b>")
 			return
