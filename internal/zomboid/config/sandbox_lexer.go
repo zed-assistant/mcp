@@ -3,13 +3,17 @@ package config
 import (
 	"bytes"
 	"fmt"
-	"strconv"
 	"strings"
 )
 
 // sandboxParser holds the raw source bytes of a SandboxVars lua file and a cursor
-// into it. It never copies/rewrites the source; every parsed leaf just records the
-// byte range of its value so that writes can splice the exact bytes in place.
+// into it, used only for the two things golua's AST can't give us directly: the
+// exact byte extent of a value it doesn't classify as a leaf we support (so a
+// splice-affecting edit never touches it), and the leading comment text that
+// precedes a key (golua's scanner discards comments as trivia, like every
+// standard Lua tokenizer). It never copies/rewrites the source; it only ever
+// records or walks byte ranges so that writes can splice the exact bytes in
+// place.
 type sandboxParser struct {
 	src []byte
 	pos int
@@ -20,10 +24,6 @@ func (p *sandboxParser) peek() byte {
 		return 0
 	}
 	return p.src[p.pos]
-}
-
-func (p *sandboxParser) atEnd() bool {
-	return p.pos >= len(p.src)
 }
 
 func (p *sandboxParser) hasPrefix(s string) bool {
@@ -39,26 +39,6 @@ func (p *sandboxParser) skipWhitespace() {
 			return
 		}
 	}
-}
-
-func isLuaIdentStart(b byte) bool {
-	return b == '_' || (b >= 'a' && b <= 'z') || (b >= 'A' && b <= 'Z')
-}
-
-func isLuaIdentPart(b byte) bool {
-	return isLuaIdentStart(b) || (b >= '0' && b <= '9')
-}
-
-func (p *sandboxParser) readIdentifier() (string, bool) {
-	if p.pos >= len(p.src) || !isLuaIdentStart(p.src[p.pos]) {
-		return "", false
-	}
-	start := p.pos
-	p.pos++
-	for p.pos < len(p.src) && isLuaIdentPart(p.src[p.pos]) {
-		p.pos++
-	}
-	return string(p.src[start:p.pos]), true
 }
 
 // tryLongBracketOpen recognizes a Lua long-bracket opener: '[' '='* '['.
@@ -97,117 +77,44 @@ func (p *sandboxParser) consumeLongBracketBody(level int) (string, error) {
 }
 
 // readStringLiteral reads a single-quoted or double-quoted Lua string literal
-// starting at the current position, decoding escape sequences. It fully commits
-// (mutates p.pos) on both success and hard failure; callers that want to try
-// speculatively should save/restore p.pos themselves.
-func (p *sandboxParser) readStringLiteral() (value string, quote byte, end int, ok bool, err error) {
+// starting at the current position. Escape sequences are decoded only well
+// enough to correctly find the literal's end (their decoded values are
+// discarded); golua's ast.String already provides the authoritative decoded
+// value for literals we expose as leaves. It fully commits (mutates p.pos) on
+// both success and hard failure; callers that want to try speculatively should
+// save/restore p.pos themselves.
+func (p *sandboxParser) readStringLiteral() (end int, ok bool, err error) {
 	if p.pos >= len(p.src) {
-		return "", 0, 0, false, nil
+		return 0, false, nil
 	}
 	c := p.src[p.pos]
 	if c != '"' && c != '\'' {
-		return "", 0, 0, false, nil
+		return 0, false, nil
 	}
-	quote = c
+	quote := c
 	start := p.pos
 	p.pos++
-	var sb strings.Builder
 	for {
 		if p.pos >= len(p.src) {
-			return "", 0, 0, false, fmt.Errorf("unterminated string literal starting at byte %d", start)
+			return 0, false, fmt.Errorf("unterminated string literal starting at byte %d", start)
 		}
 		ch := p.src[p.pos]
 		if ch == quote {
 			p.pos++
-			return sb.String(), quote, p.pos, true, nil
+			return p.pos, true, nil
 		}
 		if ch == '\n' {
-			return "", 0, 0, false, fmt.Errorf("unterminated string literal starting at byte %d (newline before closing quote)", start)
+			return 0, false, fmt.Errorf("unterminated string literal starting at byte %d (newline before closing quote)", start)
 		}
 		if ch != '\\' {
-			sb.WriteByte(ch)
 			p.pos++
 			continue
 		}
-
-		// escape sequence
 		p.pos++
 		if p.pos >= len(p.src) {
-			return "", 0, 0, false, fmt.Errorf("unterminated escape sequence at byte %d", p.pos)
+			return 0, false, fmt.Errorf("unterminated escape sequence at byte %d", p.pos)
 		}
-		e := p.src[p.pos]
-		switch {
-		case e == 'n':
-			sb.WriteByte('\n')
-			p.pos++
-		case e == 't':
-			sb.WriteByte('\t')
-			p.pos++
-		case e == 'r':
-			sb.WriteByte('\r')
-			p.pos++
-		case e == 'a':
-			sb.WriteByte(7)
-			p.pos++
-		case e == 'b':
-			sb.WriteByte(8)
-			p.pos++
-		case e == 'f':
-			sb.WriteByte(12)
-			p.pos++
-		case e == 'v':
-			sb.WriteByte(11)
-			p.pos++
-		case e == '\\':
-			sb.WriteByte('\\')
-			p.pos++
-		case e == '"':
-			sb.WriteByte('"')
-			p.pos++
-		case e == '\'':
-			sb.WriteByte('\'')
-			p.pos++
-		case e == '\n':
-			sb.WriteByte('\n')
-			p.pos++
-		case e == 'x':
-			if p.pos+2 >= len(p.src) {
-				return "", 0, 0, false, fmt.Errorf("invalid \\x escape at byte %d", p.pos)
-			}
-			hex := string(p.src[p.pos+1 : p.pos+3])
-			v, hexErr := strconv.ParseUint(hex, 16, 8)
-			if hexErr != nil {
-				return "", 0, 0, false, fmt.Errorf("invalid \\x escape %q at byte %d", hex, p.pos)
-			}
-			sb.WriteByte(byte(v))
-			p.pos += 3
-		case e >= '0' && e <= '9':
-			j := p.pos
-			digits := 0
-			for digits < 3 && j < len(p.src) && p.src[j] >= '0' && p.src[j] <= '9' {
-				j++
-				digits++
-			}
-			numStr := string(p.src[p.pos:j])
-			v, numErr := strconv.ParseUint(numStr, 10, 32)
-			if numErr != nil || v > 255 {
-				return "", 0, 0, false, fmt.Errorf("invalid decimal escape %q at byte %d", numStr, p.pos)
-			}
-			sb.WriteByte(byte(v))
-			p.pos = j
-		case e == 'z':
-			p.pos++
-			for p.pos < len(p.src) {
-				switch p.src[p.pos] {
-				case ' ', '\t', '\r', '\n':
-					p.pos++
-					continue
-				}
-				break
-			}
-		default:
-			return "", 0, 0, false, fmt.Errorf("unsupported escape sequence '\\%c' at byte %d", e, p.pos)
-		}
+		p.pos++
 	}
 }
 
@@ -259,69 +166,18 @@ func (p *sandboxParser) skipInsignificant() (string, error) {
 	return strings.Join(lines, "\n"), nil
 }
 
-// scanBalanced scans a bracketed expression starting at the current position,
-// which must be '(', '{' or '[', up to and including its matching close,
-// honoring nested brackets, string/long-string literals and comments.
-func (p *sandboxParser) scanBalanced() error {
-	if p.pos >= len(p.src) {
-		return fmt.Errorf("unexpected end of file while scanning bracketed expression")
+// consumeOptionalComma skips an optional trailing comma after a table-entry
+// value. A comma may be preceded by whitespace/comments; those comments (if
+// any) are discarded rather than misattributed, since real SandboxVars files
+// never place a comment between a value and its trailing comma.
+func (p *sandboxParser) consumeOptionalComma() {
+	save := p.pos
+	if _, err := p.skipInsignificant(); err != nil {
+		p.pos = save
+		return
 	}
-	if p.src[p.pos] == '[' {
-		if level, isLong := p.tryLongBracketOpen(); isLong {
-			_, err := p.consumeLongBracketBody(level)
-			return err
-		}
-	}
-	depth := 0
-	for {
-		if p.pos >= len(p.src) {
-			return fmt.Errorf("unexpected end of file while scanning bracketed expression")
-		}
-		c := p.src[p.pos]
-		switch {
-		case c == '"' || c == '\'':
-			_, _, _, ok, err := p.readStringLiteral()
-			if err != nil {
-				return err
-			}
-			if !ok {
-				return fmt.Errorf("internal error reading string literal at byte %d", p.pos)
-			}
-		case c == '-' && p.pos+1 < len(p.src) && p.src[p.pos+1] == '-':
-			p.pos += 2
-			if level, isLong := p.tryLongBracketOpen(); isLong {
-				if _, err := p.consumeLongBracketBody(level); err != nil {
-					return err
-				}
-			} else {
-				for p.pos < len(p.src) && p.src[p.pos] != '\n' {
-					p.pos++
-				}
-			}
-		case c == '[':
-			if level, isLong := p.tryLongBracketOpen(); isLong {
-				if _, err := p.consumeLongBracketBody(level); err != nil {
-					return err
-				}
-				continue
-			}
-			depth++
-			p.pos++
-		case c == '(' || c == '{':
-			depth++
-			p.pos++
-		case c == ')' || c == '}' || c == ']':
-			depth--
-			p.pos++
-			if depth == 0 {
-				return nil
-			}
-			if depth < 0 {
-				return fmt.Errorf("unbalanced closing bracket at byte %d", p.pos)
-			}
-		default:
-			p.pos++
-		}
+	if p.peek() == ',' {
+		p.pos++
 	}
 }
 
@@ -329,9 +185,10 @@ func (p *sandboxParser) scanBalanced() error {
 // position (after skipping leading whitespace) up to - but not including - the
 // first top-level ',' or the enclosing table's closing '}'. It returns the
 // [start,end) byte range of the expression with trailing whitespace trimmed.
-// It does not attempt to understand the expression, only to find its extent,
-// so arrays, function calls, and other constructs we don't model as leaves are
-// safely skipped over rather than causing a parse failure.
+// It is used only for values golua's AST didn't classify as a leaf kind we
+// support (e.g. a function call or arithmetic expression): we still need to
+// know their extent so comment/description scanning for the next key resumes
+// in the right place, without corrupting a byte splice for anything nearby.
 func (p *sandboxParser) scanValueSpan() (start, end int, err error) {
 	p.skipWhitespace()
 	start = p.pos
@@ -343,7 +200,7 @@ func (p *sandboxParser) scanValueSpan() (start, end int, err error) {
 		c := p.src[p.pos]
 		switch {
 		case c == '"' || c == '\'':
-			_, _, _, ok, serr := p.readStringLiteral()
+			_, ok, serr := p.readStringLiteral()
 			if serr != nil {
 				return 0, 0, serr
 			}

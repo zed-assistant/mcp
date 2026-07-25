@@ -4,12 +4,31 @@ import (
 	"bytes"
 	"fmt"
 	"os"
+	"regexp"
 	"sort"
 	"strings"
 
 	"github.com/zed-assistant/mcp/internal/configuration"
 	domainerror "github.com/zed-assistant/mcp/internal/domain_error"
 )
+
+var (
+	decimalIntegerRegex = regexp.MustCompile(`^-?\d+$`)
+	decimalNumberRegex  = regexp.MustCompile(`^-?(\d+\.\d*|\.\d+|\d+)([eE][-+]?\d+)?$`)
+	hexNumberRegex      = regexp.MustCompile(`^-?0[xX][0-9a-fA-F]+$`)
+)
+
+// isSandboxNumberLiteral reports whether s is any recognized Lua numeric
+// literal, integer or float, that a user may submit as a replacement value.
+func isSandboxNumberLiteral(s string) bool {
+	return decimalNumberRegex.MatchString(s) || hexNumberRegex.MatchString(s)
+}
+
+// isSandboxIntegerLiteral reports whether s is specifically a whole-number
+// literal (no decimal point, no exponent). Hex literals are always integers.
+func isSandboxIntegerLiteral(s string) bool {
+	return decimalIntegerRegex.MatchString(s) || hexNumberRegex.MatchString(s)
+}
 
 // sandboxEdit is one validated, ready-to-apply change: replace exactly the
 // bytes [leaf.ValueStart, leaf.ValueEnd) of the source file with newText.
