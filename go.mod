@@ -5,6 +5,7 @@ go 1.26.2
 tool github.com/air-verse/air
 
 require (
+	github.com/arnodel/golua v0.2.0
 	github.com/go-chi/chi/v5 v5.3.1
 	github.com/go-playground/locales v0.14.1
 	github.com/go-playground/universal-translator v0.18.1
@@ -29,8 +30,6 @@ require (
 	dario.cat/mergo v1.0.2 // indirect
 	github.com/air-verse/air v1.65.3 // indirect
 	github.com/andybalholm/brotli v1.2.0 // indirect
-	github.com/arnodel/golua v0.2.0 // indirect
-	github.com/arnodel/strftime v0.1.6 // indirect
 	github.com/asaskevich/govalidator v0.0.0-20230301143203-a9d515a09cc2 // indirect
 	github.com/bep/godartsass/v2 v2.5.0 // indirect
 	github.com/bep/golibsass v1.2.0 // indirect
