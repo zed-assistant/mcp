@@ -21,11 +21,11 @@ func NewIDPManger(
 	signJwt func(claims jwt.Claims, options jwt.SigningOptions) (string, error),
 	verifyJwt func(token string, options jwt.VerifyingOptions) (*jwt.Claims, error),
 	getCurrentTime func() time.Time,
-	random *random.Random,
+	rnd *random.Random,
 ) (*IDPManger, error) {
 	signingSecret := []byte(appConfig.OAuth2.SigningSecret)
 	if len(signingSecret) == 0 {
-		s, err := random.RandomBytes(32)
+		s, err := rnd.RandomBytes(32)
 		if err != nil {
 			return nil, err
 		}

@@ -28,8 +28,7 @@ func (c *AppConfig) validate() error {
 		errs = append(errs, fmt.Errorf("oauth2.idp.type %s is not allowed - must be one of: %v", c.OAuth2.IDP.Type, allowedIDPTypes))
 	}
 
-	switch c.OAuth2.IDP.Type {
-	case "local":
+	if c.OAuth2.IDP.Type == "local" {
 		errs = append(errs, c.validateLocalIDP()...)
 	}
 

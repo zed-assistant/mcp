@@ -29,9 +29,9 @@ type McpToolManager struct {
 	zomboidInstanceManager *instance.ZomboidInstanceManager
 }
 
-func NewMcpToolManager(logger *slog.Logger, zomboidInstanceManager *instance.ZomboidInstanceManager) *McpToolManager {
+func NewMcpToolManager(log *slog.Logger, zomboidInstanceManager *instance.ZomboidInstanceManager) *McpToolManager {
 	return &McpToolManager{
-		logger:                 logger,
+		logger:                 log,
 		zomboidInstanceManager: zomboidInstanceManager,
 	}
 }

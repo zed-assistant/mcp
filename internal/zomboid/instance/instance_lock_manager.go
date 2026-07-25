@@ -23,24 +23,32 @@ func NewInstanceLockManager() *InstanceLockManager {
 }
 
 func (m *InstanceLockManager) Lock(instanceId string) {
-	lock, _ := m.locks.LoadOrStore(instanceId, &sync.RWMutex{})
-	lock.(*sync.RWMutex).Lock()
+	stored, _ := m.locks.LoadOrStore(instanceId, &sync.RWMutex{})
+	if lock, ok := stored.(*sync.RWMutex); ok {
+		lock.Lock()
+	}
 }
 
 func (m *InstanceLockManager) Unlock(instanceId string) {
-	if lock, exists := m.locks.Load(instanceId); exists {
-		lock.(*sync.RWMutex).Unlock()
+	if stored, exists := m.locks.Load(instanceId); exists {
+		if lock, ok := stored.(*sync.RWMutex); ok {
+			lock.Unlock()
+		}
 	}
 }
 
 func (m *InstanceLockManager) RLock(instanceId string) {
-	lock, _ := m.locks.LoadOrStore(instanceId, &sync.RWMutex{})
-	lock.(*sync.RWMutex).RLock()
+	stored, _ := m.locks.LoadOrStore(instanceId, &sync.RWMutex{})
+	if lock, ok := stored.(*sync.RWMutex); ok {
+		lock.RLock()
+	}
 }
 
 func (m *InstanceLockManager) RUnlock(instanceId string) {
-	if lock, exists := m.locks.Load(instanceId); exists {
-		lock.(*sync.RWMutex).RUnlock()
+	if stored, exists := m.locks.Load(instanceId); exists {
+		if lock, ok := stored.(*sync.RWMutex); ok {
+			lock.RUnlock()
+		}
 	}
 }
 

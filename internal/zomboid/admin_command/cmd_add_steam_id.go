@@ -15,15 +15,16 @@ func (c AddSteamIDAdminCommand) ToCommand() string {
 }
 
 func (c AddSteamIDAdminCommand) ParseResponse(response string) (string, error) {
-	if response == fmt.Sprintf("SteamID %s added to allowed SteamIDs", c.SteamID) {
+	switch response {
+	case fmt.Sprintf("SteamID %s added to allowed SteamIDs", c.SteamID):
 		return "", nil
-	} else if response == fmt.Sprintf("SteamID %s already exists in allowed SteamIDs", c.SteamID) {
+	case fmt.Sprintf("SteamID %s already exists in allowed SteamIDs", c.SteamID):
 		return "", &domainerror.DomainError{
 			InternalMessage: response,
 			PublicMessage:   response,
 			InternalCode:    domainerror.Conflict,
 		}
-	} else {
+	default:
 		return "", fmt.Errorf("unexpected response: %s", response)
 	}
 }

@@ -72,7 +72,11 @@ func newServerDeps(appConfig *configuration.AppConfig, log *slog.Logger) (*serve
 }
 
 func newTransport(dialContext func(ctx context.Context, network, addr string) (net.Conn, error)) *http.Transport {
-	t := http.DefaultTransport.(*http.Transport).Clone()
+	baseTransport, ok := http.DefaultTransport.(*http.Transport)
+	if !ok {
+		baseTransport = &http.Transport{}
+	}
+	t := baseTransport.Clone()
 
 	t.MaxIdleConns = 100
 	t.MaxIdleConnsPerHost = 20

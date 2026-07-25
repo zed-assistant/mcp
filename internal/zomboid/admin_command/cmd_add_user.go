@@ -12,19 +12,20 @@ type AddUserAdminCommand struct {
 }
 
 func (c AddUserAdminCommand) ToCommand() string {
-	return fmt.Sprintf("adduser \"%s\" \"%s\"", c.Username, c.Password)
+	return fmt.Sprintf("adduser %q %q", c.Username, c.Password)
 }
 
 func (c AddUserAdminCommand) ParseResponse(response string) (string, error) {
-	if response == fmt.Sprintf("User %s created with password", c.Username) {
+	switch response {
+	case fmt.Sprintf("User %s created with password", c.Username):
 		return "", nil
-	} else if response == "A user with this name already exists" {
+	case "A user with this name already exists":
 		return "", &domainerror.DomainError{
 			InternalMessage: fmt.Sprintf("A user with the name %s already exists", c.Username),
 			PublicMessage:   response,
 			InternalCode:    domainerror.Conflict,
 		}
-	} else {
+	default:
 		return "", fmt.Errorf("unexpected response: %s", response)
 	}
 }
