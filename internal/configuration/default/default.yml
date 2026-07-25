@@ -10,6 +10,7 @@ oauth2:
   pending_auth_ttl: 10m
   idp:
     type: "local"
+    secure_cookie: true
     local:
       users:
         - username: ""

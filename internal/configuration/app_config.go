@@ -20,8 +20,9 @@ type OAuth2Config struct {
 }
 
 type OAuth2IDPConfig struct {
-	Type  string                `koanf:"type"`
-	Local *OAuth2IDPLocalConfig `koanf:"local"`
+	Type         string                `koanf:"type"`
+	SecureCookie bool                  `koanf:"secure_cookie"`
+	Local        *OAuth2IDPLocalConfig `koanf:"local"`
 }
 
 type LocalUserConfig struct {

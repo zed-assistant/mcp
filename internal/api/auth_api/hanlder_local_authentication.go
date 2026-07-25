@@ -44,7 +44,7 @@ func (a *AuthApi) localAuthentication(w http.ResponseWriter, r *http.Request) {
 		Path:     "/",
 		MaxAge:   int((5 * time.Minute).Seconds()),
 		HttpOnly: true,
-		Secure:   true,
+		Secure:   a.appConfig.OAuth2.IDP.SecureCookie,
 		SameSite: http.SameSiteLaxMode,
 	})
 
