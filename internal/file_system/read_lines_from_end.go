@@ -13,7 +13,7 @@ func ReadLinesFromEnd(path string, maxLines int, match func(line string) bool) (
 		return []string{}, nil
 	}
 
-	f, err := os.Open(path)
+	f, err := os.Open(path) // nolint:gosec
 	if err != nil {
 		return nil, err
 	}
