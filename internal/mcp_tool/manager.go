@@ -130,11 +130,15 @@ func withUser[In, Out any](log *slog.Logger, h userToolFunc[In, Out],
 
 		if err := validate.Struct(in); err != nil {
 			log.WarnContext(ctx, "Tool handler called with invalid input", logger.LogError(err))
-			translatedErrs := make([]string, 0)
-			for _, e := range err.(validator.ValidationErrors) {
-				translatedErrs = append(translatedErrs, e.Translate(trans))
+			var validationErrs validator.ValidationErrors
+			if errors.As(err, &validationErrs) {
+				translatedErrs := make([]string, 0, len(validationErrs))
+				for _, e := range validationErrs {
+					translatedErrs = append(translatedErrs, e.Translate(trans))
+				}
+				return nil, zero, errors.New("Invalid input: " + strings.Join(translatedErrs, "; "))
 			}
-			return nil, zero, errors.New("Invalid input: " + strings.Join(translatedErrs, "; "))
+			return nil, zero, errors.New("Invalid input: " + err.Error())
 		}
 
 		out, err := h(ctx, principal, in)
