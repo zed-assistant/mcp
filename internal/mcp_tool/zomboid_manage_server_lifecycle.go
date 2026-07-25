@@ -55,7 +55,7 @@ func (m *McpToolManager) ManageServerLifecycle() Tool {
 				cmd = admincommand.NewQuitServerAdminCommand()
 			default:
 				return nil, &domainerror.DomainError{
-					InternalMessage: fmt.Sprintf("Unsupported manage server lifecycle action %s", input.Action),
+					InternalMessage: "Unsupported manage server lifecycle action " + input.Action,
 					PublicMessage:   fmt.Sprintf("Unsupported manage server lifecycle action %s. Allowed actions are: reloadalllua, save, quit.", input.Action),
 					InternalCode:    domainerror.InvalidInput,
 				}

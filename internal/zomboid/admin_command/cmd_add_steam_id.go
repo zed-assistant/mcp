@@ -11,7 +11,7 @@ type AddSteamIDAdminCommand struct {
 }
 
 func (c AddSteamIDAdminCommand) ToCommand() string {
-	return fmt.Sprintf("addsteamid %s", c.SteamID)
+	return "addsteamid " + c.SteamID
 }
 
 func (c AddSteamIDAdminCommand) ParseResponse(response string) (string, error) {

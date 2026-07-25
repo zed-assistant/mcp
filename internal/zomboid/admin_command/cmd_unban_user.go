@@ -14,7 +14,7 @@ func (c UnbanUserAdminCommand) ToCommand() string {
 }
 
 func (c UnbanUserAdminCommand) ParseResponse(response string) (string, error) {
-	if strings.HasSuffix(response, fmt.Sprintf("unbanned user %s", c.Username)) {
+	if strings.HasSuffix(response, "unbanned user "+c.Username) {
 		return "", nil
 	} else {
 		return "", fmt.Errorf("unexpected response: %s", response)
@@ -36,7 +36,7 @@ func (c UnbanUserIDAdminCommand) ToCommand() string {
 }
 
 func (c UnbanUserIDAdminCommand) ParseResponse(response string) (string, error) {
-	if strings.ToLower(response) == fmt.Sprintf("steamid %s is now unbanned", strings.ToLower(c.SteamID)) {
+	if strings.ToLower(response) == "steamid "+strings.ToLower(c.SteamID)+" is now unbanned" {
 		return "", nil
 	} else {
 		return "", fmt.Errorf("unexpected response: %s", response)

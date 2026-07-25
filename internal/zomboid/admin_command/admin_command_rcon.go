@@ -1,6 +1,7 @@
 package admincommand
 
 import (
+	"errors"
 	"fmt"
 	"strconv"
 
@@ -27,18 +28,18 @@ func (s *AdminCommandRCON) getRCONConfig(instanceConfig *configuration.ZomboidIn
 
 	passwordEntry, ok := cfg["RCONPassword"]
 	if !ok {
-		return 0, "", fmt.Errorf("RCON password not found in server config")
+		return 0, "", errors.New("RCON password not found in server config")
 	}
 	if passwordEntry.Value == "" {
-		return 0, "", fmt.Errorf("RCON password is empty in server config")
+		return 0, "", errors.New("RCON password is empty in server config")
 	}
 
 	portEntry, ok := cfg["RCONPort"]
 	if !ok {
-		return 0, "", fmt.Errorf("RCON port not found in server config")
+		return 0, "", errors.New("RCON port not found in server config")
 	}
 	if portEntry.Value == "" {
-		return 0, "", fmt.Errorf("RCON port is empty in server config")
+		return 0, "", errors.New("RCON port is empty in server config")
 	}
 	port, err := strconv.Atoi(portEntry.Value)
 	if err != nil {

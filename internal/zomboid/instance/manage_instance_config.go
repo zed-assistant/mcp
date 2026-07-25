@@ -78,7 +78,7 @@ func (m *ZomboidInstanceManager) updateServerConfig(ctx context.Context, _ autho
 	m.log.InfoContext(ctx, fmt.Sprintf("Updating server config for instance %s (%s)", input.InstanceID, instanceCfg.Name))
 
 	if err := m.serverConfigManager.UpdateServerConfig(&instanceCfg, flatUpdates); err != nil {
-		m.log.Error("Server config update failed", logger.LogError(err))
+		m.log.ErrorContext(ctx, "Server config update failed", logger.LogError(err))
 		return nil, err
 	}
 
@@ -88,7 +88,7 @@ func (m *ZomboidInstanceManager) updateServerConfig(ctx context.Context, _ autho
 		m.log.InfoContext(ctx, fmt.Sprintf("Applying server config changes live for instance %s (%s)", input.InstanceID, instanceCfg.Name))
 		_, err := admincommand.ExecuteSingleAdminCommand(m.adminCommandManager, &instanceCfg, &admincommand.ReloadOptionsAdminCommand{})
 		if err != nil {
-			m.log.Error("Failed to apply server config changes live", logger.LogError(err))
+			m.log.ErrorContext(ctx, "Failed to apply server config changes live", logger.LogError(err))
 			return nil, err
 		}
 		m.log.InfoContext(ctx, fmt.Sprintf("Server config changes applied live successfully for instance %s (%s)", input.InstanceID, instanceCfg.Name))
@@ -113,7 +113,7 @@ func (m *ZomboidInstanceManager) updateSandboxConfig(ctx context.Context, _ auth
 	m.log.InfoContext(ctx, fmt.Sprintf("Updating sandbox config for instance %s (%s)", input.InstanceID, instanceCfg.Name))
 
 	if err := m.serverConfigManager.UpdateSandboxConfig(&instanceCfg, input.Updates); err != nil {
-		m.log.Error("Sandbox config update failed", logger.LogError(err))
+		m.log.ErrorContext(ctx, "Sandbox config update failed", logger.LogError(err))
 		return nil, err
 	}
 

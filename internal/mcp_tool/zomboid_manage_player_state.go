@@ -91,7 +91,7 @@ func (m *McpToolManager) ManagePlayerState() Tool {
 				cmd = admincommand.NewNoclipAdminCommand(input.Username, *input.Enabled)
 			default:
 				return nil, &domainerror.DomainError{
-					InternalMessage: fmt.Sprintf("Unsupported manage player state action %s", input.Action),
+					InternalMessage: "Unsupported manage player state action " + input.Action,
 					PublicMessage:   fmt.Sprintf("Unsupported manage player state action %s. Allowed actions are: additem, addxp, invisible, noclip.", input.Action),
 					InternalCode:    domainerror.InvalidInput,
 				}

@@ -45,20 +45,14 @@ func ReadLinesFromEnd(path string, maxLines int, match func(line string) bool) (
 	}
 
 	for pos > 0 && len(matched) < maxLines {
-		chunkLen := reverseReadChunkSize
-		if chunkLen > pos {
-			chunkLen = pos
-		}
+		chunkLen := min(reverseReadChunkSize, pos)
 		start := pos - chunkLen
 
-		buf := make([]byte, chunkLen)
-		if _, err := f.ReadAt(buf, start); err != nil && !errors.Is(err, io.EOF) {
+		buf := make([]byte, chunkLen+int64(len(carry)))
+		if _, err := f.ReadAt(buf[:chunkLen], start); err != nil && !errors.Is(err, io.EOF) {
 			return nil, err
 		}
-		if len(carry) > 0 {
-			buf = append(buf, carry...)
-			carry = nil
-		}
+		copy(buf[chunkLen:], carry)
 
 		segEnd := len(buf)
 		keepGoing := true

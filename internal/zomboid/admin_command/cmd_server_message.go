@@ -7,7 +7,7 @@ type ServerMessageAdminCommand struct {
 }
 
 func (c ServerMessageAdminCommand) ToCommand() string {
-	return fmt.Sprintf("servermsg \"%s\"", c.Message)
+	return fmt.Sprintf("servermsg %q", c.Message)
 }
 
 func (c ServerMessageAdminCommand) ParseResponse(response string) (string, error) {

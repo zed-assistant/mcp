@@ -16,28 +16,28 @@ func (a *AuthApi) authorize(w http.ResponseWriter, r *http.Request) {
 	authorizeRequest, err := a.oauthProvider.NewAuthorizeRequest(ctx, r)
 	if err != nil {
 		logError := oauthErrorToLoggerError(err)
-		a.log.Warn("Unable to parse authorize request", logger.LogError(logError))
+		a.log.WarnContext(ctx, "Unable to parse authorize request", logger.LogError(logError))
 		a.oauthProvider.WriteAuthorizeError(ctx, w, authorizeRequest, err)
 		return
 	}
 
 	if r.URL.Query().Get("code_challenge") == "" {
 		err := fosite.ErrInvalidRequest.WithHint("Clients must include a code_challenge when performing the authorize code flow, but it is missing.")
-		a.log.Warn("Missing code_challenge in authorize request", logger.LogError(err))
+		a.log.WarnContext(ctx, "Missing code_challenge in authorize request", logger.LogError(err))
 		a.oauthProvider.WriteAuthorizeError(ctx, w, authorizeRequest, err)
 		return
 	}
 
 	pending, err := a.pendingAuthStore.StorePendingAuth(r.URL.Query())
 	if err != nil {
-		a.log.Error("Unable to store pending auth request", logger.LogError(err))
+		a.log.ErrorContext(ctx, "Unable to store pending auth request", logger.LogError(err))
 		a.oauthProvider.WriteAuthorizeError(ctx, w, authorizeRequest, err)
 		return
 	}
 
 	redirectURL, err := a.getAuthorizationURL(pending.ID, pending.Nonce)
 	if err != nil {
-		a.log.Error("Unable to get authorization URL", logger.LogError(err))
+		a.log.ErrorContext(ctx, "Unable to get authorization URL", logger.LogError(err))
 		a.oauthProvider.WriteAuthorizeError(ctx, w, authorizeRequest, err)
 		return
 	}

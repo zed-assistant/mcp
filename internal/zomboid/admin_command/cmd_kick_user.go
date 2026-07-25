@@ -12,23 +12,24 @@ type KickUserAdminCommand struct {
 }
 
 func (c KickUserAdminCommand) ToCommand() string {
-	command := fmt.Sprintf("kickuser \"%s\"", c.Username)
+	command := fmt.Sprintf("kickuser %q", c.Username)
 	if c.Reason != "" {
-		command += fmt.Sprintf(" -r \"%s\"", c.Reason)
+		command += fmt.Sprintf(" -r %q", c.Reason)
 	}
 	return command
 }
 
 func (c KickUserAdminCommand) ParseResponse(response string) (string, error) {
-	if response == fmt.Sprintf("User %s kicked.", c.Username) {
+	switch response {
+	case fmt.Sprintf("User %s kicked.", c.Username):
 		return "", nil
-	} else if response == fmt.Sprintf("User %s doesn't exist.", c.Username) {
+	case fmt.Sprintf("User %s doesn't exist.", c.Username):
 		return "", domainerror.DomainError{
 			InternalMessage: fmt.Sprintf("Game user %s not found", c.Username),
 			PublicMessage:   fmt.Sprintf("User %s not found", c.Username),
 			InternalCode:    domainerror.NotFound,
 		}
-	} else {
+	default:
 		return "", fmt.Errorf("unexpected response: %s", response)
 	}
 }

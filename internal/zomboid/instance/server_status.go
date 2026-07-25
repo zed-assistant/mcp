@@ -69,7 +69,7 @@ func (m *ZomboidInstanceManager) GetServerStatus(ctx context.Context, principal 
 
 	maxPlayers, ok := cfg["MaxPlayers"]
 	if !ok {
-		return nil, fmt.Errorf("failed to read MaxPlayers from server config")
+		return nil, errors.New("failed to read MaxPlayers from server config")
 	}
 	numberOfMaxPlayers, err := strconv.Atoi(maxPlayers.Value)
 	if err != nil {

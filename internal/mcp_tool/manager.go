@@ -85,12 +85,6 @@ func withUserRecoverNoOutput[In any](log *slog.Logger, h func(ctx context.Contex
 	return withUserRecover(log, noOutput(h))
 }
 
-func withUserRecoverNoInputNoOutput(log *slog.Logger, h func(ctx context.Context, principal authorization.Principal) error) mcp.ToolHandlerFor[Empty, Empty] {
-	return withUserRecover(log, noInput(func(ctx context.Context, principal authorization.Principal) (Empty, error) {
-		return Empty{}, h(ctx, principal)
-	}))
-}
-
 type userToolFunc[In, Out any] func(ctx context.Context, principal authorization.Principal, in In) (Out, error)
 
 // noInput adapts a domain function that takes no input into the userToolFunc[Empty, Out] shape.

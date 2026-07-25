@@ -13,8 +13,8 @@ func (c ListPlayersAdminCommand) ParseResponse(response string) ([]string, error
 	players := make([]string, 0, len(lines))
 	for _, line := range lines {
 		line = strings.TrimSpace(line)
-		if strings.HasPrefix(line, "-") {
-			player := strings.TrimSpace(strings.TrimPrefix(line, "-"))
+		if rest, ok := strings.CutPrefix(line, "-"); ok {
+			player := strings.TrimSpace(rest)
 			players = append(players, player)
 		}
 	}

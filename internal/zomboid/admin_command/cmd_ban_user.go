@@ -11,15 +11,15 @@ type BanUserAdminCommand struct {
 }
 
 func (c BanUserAdminCommand) ToCommand() string {
-	command := fmt.Sprintf("banuser \"%s\"", c.Username)
+	command := fmt.Sprintf("banuser %q", c.Username)
 	if c.Reason != "" {
-		command += fmt.Sprintf(" -r \"%s\"", c.Reason)
+		command += fmt.Sprintf(" -r %q", c.Reason)
 	}
 	return command
 }
 
 func (c BanUserAdminCommand) ParseResponse(response string) (string, error) {
-	if strings.HasSuffix(response, fmt.Sprintf("banned user %s", c.Username)) {
+	if strings.HasSuffix(response, "banned user "+c.Username) {
 		return "", nil
 	} else {
 		return "", fmt.Errorf("unexpected response: %s", response)
@@ -38,11 +38,11 @@ type BanUserIDAdminCommand struct {
 }
 
 func (c BanUserIDAdminCommand) ToCommand() string {
-	return fmt.Sprintf("banid \"%s\"", c.SteamID)
+	return fmt.Sprintf("banid %q", c.SteamID)
 }
 
 func (c BanUserIDAdminCommand) ParseResponse(response string) (string, error) {
-	if strings.Contains(strings.ToLower(response), fmt.Sprintf("banned steamid %s", strings.ToLower(c.SteamID))) {
+	if strings.Contains(strings.ToLower(response), "banned steamid "+strings.ToLower(c.SteamID)) {
 		return "", nil
 	} else {
 		return "", fmt.Errorf("unexpected response: %s", response)

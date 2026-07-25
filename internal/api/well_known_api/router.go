@@ -1,6 +1,7 @@
 package wellknownapi
 
 import (
+	"context"
 	"encoding/json"
 	"log/slog"
 	"net/http"
@@ -34,10 +35,10 @@ func (a *WellKnownApi) GetRouter() *chi.Mux {
 	return router
 }
 
-func (a *WellKnownApi) writeWellKnownJSON(w http.ResponseWriter, v any) {
+func (a *WellKnownApi) writeWellKnownJSON(ctx context.Context, w http.ResponseWriter, v any) {
 	w.Header().Set("Content-Type", "application/json")
 	w.Header().Set("Cache-Control", "public, max-age=300")
 	if err := json.NewEncoder(w).Encode(v); err != nil {
-		a.log.Error("Error writing well-known JSON response", logger.LogError(err))
+		a.log.ErrorContext(ctx, "Error writing well-known JSON response", logger.LogError(err))
 	}
 }

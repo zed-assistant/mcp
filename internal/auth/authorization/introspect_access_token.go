@@ -2,6 +2,7 @@ package authorization
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"slices"
 	"time"
@@ -33,7 +34,7 @@ func (a *AuthorizationManager) IntrospectAccessToken(ctx context.Context, access
 
 	sess, _ := ar.GetSession().(*openid.DefaultSession)
 	if sess == nil || sess.Subject == "" || sess.Username == "" {
-		return nil, fmt.Errorf("access token session is invalid or missing subject or username")
+		return nil, errors.New("access token session is invalid or missing subject or username")
 	}
 
 	return &IntrospectionResult{

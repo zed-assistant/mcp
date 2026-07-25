@@ -2,6 +2,7 @@ package config
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"os"
 	"regexp"
@@ -96,13 +97,13 @@ func formatSandboxLeafUpdate(leaf *sandboxLeaf, newValue string) (string, error)
 	case sandboxLeafInteger:
 		trimmed := strings.TrimSpace(newValue)
 		if !isSandboxIntegerLiteral(trimmed) {
-			return "", fmt.Errorf("must be a whole number (no decimal point or exponent)")
+			return "", errors.New("must be a whole number (no decimal point or exponent)")
 		}
 		return trimmed, nil
 	case sandboxLeafFloat:
 		trimmed := strings.TrimSpace(newValue)
 		if !isSandboxNumberLiteral(trimmed) {
-			return "", fmt.Errorf("must be a valid number")
+			return "", errors.New("must be a valid number")
 		}
 		if decimalIntegerRegex.MatchString(trimmed) {
 			// Numerically identical in Lua either way, but keep the literal
@@ -114,13 +115,13 @@ func formatSandboxLeafUpdate(leaf *sandboxLeaf, newValue string) (string, error)
 	case sandboxLeafBool:
 		trimmed := strings.TrimSpace(newValue)
 		if trimmed != "true" && trimmed != "false" {
-			return "", fmt.Errorf("must be 'true' or 'false'")
+			return "", errors.New("must be 'true' or 'false'")
 		}
 		return trimmed, nil
 	case sandboxLeafString:
 		return encodeLuaString(newValue, leaf.QuoteChar), nil
 	default:
-		return "", fmt.Errorf("unsupported value kind")
+		return "", errors.New("unsupported value kind")
 	}
 }
 

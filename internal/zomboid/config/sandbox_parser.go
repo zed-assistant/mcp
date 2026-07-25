@@ -1,6 +1,7 @@
 package config
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/arnodel/golua/ast"
@@ -42,19 +43,19 @@ func parseSandboxFile(src []byte) (*sandboxNode, error) {
 		return nil, fmt.Errorf("lua syntax error: %w", err)
 	}
 	if len(block.Stats) == 0 {
-		return nil, fmt.Errorf("expected 'SandboxVars = { ... }' as the file's only statement")
+		return nil, errors.New("expected 'SandboxVars = { ... }' as the file's only statement")
 	}
 	assign, ok := block.Stats[0].(ast.AssignStat)
 	if !ok || len(assign.Dest) != 1 || len(assign.Src) != 1 {
-		return nil, fmt.Errorf("expected 'SandboxVars = { ... }' as the file's only statement")
+		return nil, errors.New("expected 'SandboxVars = { ... }' as the file's only statement")
 	}
 	name, ok := assign.Dest[0].(ast.Name)
 	if !ok || name.Val != "SandboxVars" {
-		return nil, fmt.Errorf("expected 'SandboxVars' identifier at start of file")
+		return nil, errors.New("expected 'SandboxVars' identifier at start of file")
 	}
 	table, ok := assign.Src[0].(ast.TableConstructor)
 	if !ok {
-		return nil, fmt.Errorf("expected 'SandboxVars' to be assigned a table literal")
+		return nil, errors.New("expected 'SandboxVars' to be assigned a table literal")
 	}
 
 	root, _, err := sandboxTableToNode(src, table)
@@ -67,6 +68,7 @@ func parseSandboxFile(src []byte) (*sandboxNode, error) {
 // sandboxTableToNode converts one already-parsed table literal into a
 // sandboxNode, and returns the byte offset just past its closing '}' so the
 // caller can resume comment/gap scanning immediately after it.
+//nolint:gocognit // hand-tuned byte-offset Lua table walker; splitting it risks subtle splicing bugs
 func sandboxTableToNode(src []byte, table ast.TableConstructor) (*sandboxNode, int, error) {
 	node := newSandboxGroupNode()
 	gapStart := table.StartPos().Offset + 1 // just after '{'

@@ -1,6 +1,7 @@
 package idp
 
 import (
+	"errors"
 	"fmt"
 	"time"
 
@@ -52,7 +53,7 @@ func (m *IDPManger) VerifyAssertion(assertion string) (*AuthenticationResult, er
 
 	authResult, ok := claims.Additional["AuthResult"].(map[string]any)
 	if !ok {
-		return nil, fmt.Errorf("failed to parse authentication result as map from assertion")
+		return nil, errors.New("failed to parse authentication result as map from assertion")
 	}
 
 	var result AuthenticationResult

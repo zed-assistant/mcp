@@ -33,11 +33,11 @@ func SSRFSafeDialContext(ctx context.Context, network, addr string) (net.Conn, e
 }
 
 func isPublicIP(ip net.IP) bool {
-	return !(ip.IsLoopback() ||
-		ip.IsPrivate() ||
-		ip.IsLinkLocalUnicast() ||
-		ip.IsLinkLocalMulticast() ||
-		ip.IsInterfaceLocalMulticast() ||
-		ip.IsMulticast() ||
-		ip.IsUnspecified())
+	return !ip.IsLoopback() &&
+		!ip.IsPrivate() &&
+		!ip.IsLinkLocalUnicast() &&
+		!ip.IsLinkLocalMulticast() &&
+		!ip.IsInterfaceLocalMulticast() &&
+		!ip.IsMulticast() &&
+		!ip.IsUnspecified()
 }

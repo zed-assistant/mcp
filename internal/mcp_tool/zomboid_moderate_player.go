@@ -81,10 +81,13 @@ func (m *McpToolManager) ModeratePlayer() Tool {
 				})
 			default:
 				return nil, &domainerror.DomainError{
-					InternalMessage: fmt.Sprintf("Unsupported moderate user action %s", input.Action),
+					InternalMessage: "Unsupported moderate user action " + input.Action,
 					PublicMessage:   fmt.Sprintf("Unsupported moderate user action %s. Allowed actions are: kick, ban, unban.", input.Action),
 					InternalCode:    domainerror.InvalidInput,
 				}
+			}
+			if err != nil {
+				return nil, fmt.Errorf("failed to moderate player: %w", err)
 			}
 
 			serverStatus, err := m.zomboidInstanceManager.GetServerStatus(ctx, principal, &instance.GetServerStatusInput{InstanceID: input.InstanceID})

@@ -14,7 +14,7 @@ func (a *AuthApi) getToken(w http.ResponseWriter, r *http.Request) {
 	accessReq, err := a.oauthProvider.NewAccessRequest(ctx, r, session)
 	if err != nil {
 		logError := oauthErrorToLoggerError(err)
-		a.log.Error("Failed to create access request", logger.LogError(logError))
+		a.log.ErrorContext(ctx, "Failed to create access request", logger.LogError(logError))
 		a.oauthProvider.WriteAccessError(ctx, w, accessReq, err)
 		return
 	}
@@ -22,7 +22,7 @@ func (a *AuthApi) getToken(w http.ResponseWriter, r *http.Request) {
 	resp, err := a.oauthProvider.NewAccessResponse(ctx, accessReq)
 	if err != nil {
 		logError := oauthErrorToLoggerError(err)
-		a.log.Error("Failed to create access response", logger.LogError(logError))
+		a.log.ErrorContext(ctx, "Failed to create access response", logger.LogError(logError))
 		a.oauthProvider.WriteAccessError(ctx, w, accessReq, err)
 		return
 	}

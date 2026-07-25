@@ -189,6 +189,7 @@ func (p *sandboxParser) consumeOptionalComma() {
 // support (e.g. a function call or arithmetic expression): we still need to
 // know their extent so comment/description scanning for the next key resumes
 // in the right place, without corrupting a byte splice for anything nearby.
+//nolint:gocognit // hand-tuned byte-offset Lua scanner; splitting it risks subtle splicing bugs
 func (p *sandboxParser) scanValueSpan() (start, end int, err error) {
 	p.skipWhitespace()
 	start = p.pos

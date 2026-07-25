@@ -44,6 +44,10 @@ const (
 	cimdMaxBody  = 64 << 10 // 64 KiB
 )
 
+// Field names must stay snake_case: this struct decodes an external OAuth
+// Client ID Metadata Document per spec, which mandates these exact JSON keys.
+//
+//nolint:tagliatelle // snake_case is required by the CIMD/OAuth spec, not a style choice
 type cimdDocument struct {
 	ClientID                string   `json:"client_id"`
 	ClientName              string   `json:"client_name"`
@@ -58,7 +62,7 @@ type cimdDocument struct {
 func (r *CIMDResolver) Resolve(ctx context.Context, id string, allowedScopes []string, audience string) (fosite.Client, error) {
 	u, err := url.Parse(id)
 	if err != nil || u.Scheme != "https" || u.Host == "" || u.Fragment != "" {
-		return nil, errors.New("client_id must be a valid https URL without a fragment.")
+		return nil, errors.New("client_id must be a valid https URL without a fragment")
 	}
 
 	r.mu.Lock()
@@ -145,7 +149,7 @@ func (r *CIMDResolver) Resolve(ctx context.Context, id string, allowedScopes []s
 
 func validateRedirectURIs(uris []string) error {
 	if len(uris) == 0 {
-		return fmt.Errorf("redirect_uris is required")
+		return errors.New("redirect_uris is required")
 	}
 	for _, raw := range uris {
 		u, err := url.Parse(raw)

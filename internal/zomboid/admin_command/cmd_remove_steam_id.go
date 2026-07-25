@@ -11,19 +11,20 @@ type RemoveSteamIDAdminCommand struct {
 }
 
 func (c RemoveSteamIDAdminCommand) ToCommand() string {
-	return fmt.Sprintf("removesteamid %s", c.SteamID)
+	return "removesteamid " + c.SteamID
 }
 
 func (c RemoveSteamIDAdminCommand) ParseResponse(response string) (string, error) {
-	if response == fmt.Sprintf("SteamID %s removed from allowed SteamIDs", c.SteamID) {
+	switch response {
+	case fmt.Sprintf("SteamID %s removed from allowed SteamIDs", c.SteamID):
 		return "", nil
-	} else if response == fmt.Sprintf("SteamID %s doesn't exists in allowed SteamIDs", c.SteamID) {
+	case fmt.Sprintf("SteamID %s doesn't exists in allowed SteamIDs", c.SteamID):
 		return "", &domainerror.DomainError{
 			InternalMessage: response,
 			PublicMessage:   response,
 			InternalCode:    domainerror.NotFound,
 		}
-	} else {
+	default:
 		return "", fmt.Errorf("unexpected response: %s", response)
 	}
 }

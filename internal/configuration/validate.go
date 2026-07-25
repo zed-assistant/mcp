@@ -13,15 +13,15 @@ func (c *AppConfig) validate() error {
 	var errs []error
 
 	if c.Server.Port < 1 || c.Server.Port > 65535 {
-		errs = append(errs, fmt.Errorf("server.port must be between 1 and 65535"))
+		errs = append(errs, errors.New("server.port must be between 1 and 65535"))
 	}
 
 	if c.Server.ExternalUrl == "" {
-		errs = append(errs, fmt.Errorf("server.external_url must be set"))
+		errs = append(errs, errors.New("server.external_url must be set"))
 	}
 
 	if len(c.OAuth2.SigningSecret) > 0 && len(c.OAuth2.SigningSecret) != 32 {
-		errs = append(errs, fmt.Errorf("oauth2.signing_secret must be 32 characters long"))
+		errs = append(errs, errors.New("oauth2.signing_secret must be 32 characters long"))
 	}
 
 	if !slices.Contains(allowedIDPTypes, c.OAuth2.IDP.Type) {
@@ -33,7 +33,7 @@ func (c *AppConfig) validate() error {
 	}
 
 	if len(c.Zomboid.Instances) == 0 {
-		errs = append(errs, fmt.Errorf("zomboid.instances must contain at least one instance"))
+		errs = append(errs, errors.New("zomboid.instances must contain at least one instance"))
 	}
 
 	for id, instance := range c.Zomboid.Instances {
@@ -77,10 +77,11 @@ func (c *AppConfig) validateLocalIDP() []error {
 	cfg := c.OAuth2.IDP.Local
 
 	if cfg == nil {
-		errs = append(errs, fmt.Errorf("oauth2.idp.local must be set when oauth2.idp.type is 'local'"))
+		errs = append(errs, errors.New("oauth2.idp.local must be set when oauth2.idp.type is 'local'"))
+		return errs
 	}
 	if len(cfg.Users) == 0 {
-		errs = append(errs, fmt.Errorf("oauth2.idp.local.users must contain at least one user when oauth2.idp.type is 'local'"))
+		errs = append(errs, errors.New("oauth2.idp.local.users must contain at least one user when oauth2.idp.type is 'local'"))
 	}
 
 	for i, user := range cfg.Users {

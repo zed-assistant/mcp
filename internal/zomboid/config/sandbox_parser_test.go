@@ -1,3 +1,7 @@
+// Kept as an internal test (not config_test) because it exercises ~15
+// unexported parser types and functions directly.
+//
+//nolint:testpackage // relies on unexported parser internals
 package config
 
 import (
@@ -30,6 +34,7 @@ const sampleSandboxVars = `SandboxVars = {
 `
 
 func TestParseSandboxFile_Basic(t *testing.T) {
+	t.Parallel()
 	root, err := parseSandboxFile([]byte(sampleSandboxVars))
 	if err != nil {
 		t.Fatalf("parseSandboxFile failed: %v", err)
@@ -102,6 +107,7 @@ func TestParseSandboxFile_Basic(t *testing.T) {
 // for every leaf slice out exactly that leaf's literal text, and nothing else -
 // the property update_sandbox_config.go's byte-splice apply depends on.
 func TestParseSandboxFile_ValueSpansAreByteExact(t *testing.T) {
+	t.Parallel()
 	src := []byte(sampleSandboxVars)
 	root, err := parseSandboxFile(src)
 	if err != nil {
@@ -129,6 +135,7 @@ func TestParseSandboxFile_ValueSpansAreByteExact(t *testing.T) {
 }
 
 func TestParseSandboxFile_SyntaxErrors(t *testing.T) {
+	t.Parallel()
 	cases := []string{
 		`SandboxVars = { Foo = "unterminated }`,
 		`SandboxVars = { Foo = 1, `,
@@ -144,6 +151,7 @@ func TestParseSandboxFile_SyntaxErrors(t *testing.T) {
 }
 
 func TestParseSandboxFile_UpdateRoundTrip(t *testing.T) {
+	t.Parallel()
 	src := []byte(sampleSandboxVars)
 	root, err := parseSandboxFile(src)
 	if err != nil {
@@ -168,7 +176,7 @@ func TestParseSandboxFile_UpdateRoundTrip(t *testing.T) {
 	merged := append([]byte(nil), src...)
 	type edit = sandboxEdit
 	sorted := append([]edit(nil), edits...)
-	for i := 0; i < len(sorted); i++ {
+	for i := range sorted {
 		for j := i + 1; j < len(sorted); j++ {
 			if sorted[j].leaf.ValueStart > sorted[i].leaf.ValueStart {
 				sorted[i], sorted[j] = sorted[j], sorted[i]

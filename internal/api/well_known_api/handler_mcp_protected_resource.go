@@ -2,8 +2,8 @@ package wellknownapi
 
 import "net/http"
 
-func (a *WellKnownApi) getAuthServerdMetadata(w http.ResponseWriter, _ *http.Request) {
-	metadata := map[string]interface{}{
+func (a *WellKnownApi) getAuthServerdMetadata(w http.ResponseWriter, r *http.Request) {
+	metadata := map[string]any{
 		"issuer":                 a.appConfig.Server.ExternalUrl,
 		"authorization_endpoint": a.appConfig.Server.ExternalUrl + "/auth/authorize",
 		"token_endpoint":         a.appConfig.Server.ExternalUrl + "/auth/token",
@@ -17,5 +17,5 @@ func (a *WellKnownApi) getAuthServerdMetadata(w http.ResponseWriter, _ *http.Req
 		"client_id_metadata_document_supported": true,
 	}
 
-	a.writeWellKnownJSON(w, metadata)
+	a.writeWellKnownJSON(r.Context(), w, metadata)
 }

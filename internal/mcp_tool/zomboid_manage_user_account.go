@@ -90,7 +90,7 @@ func (m *McpToolManager) ManageUserAccount() Tool {
 				cmd = admincommand.NewSetPasswordAdminCommand(input.Username, input.Password)
 			default:
 				return nil, &domainerror.DomainError{
-					InternalMessage: fmt.Sprintf("Unsupported manage user account action %s", input.Action),
+					InternalMessage: "Unsupported manage user account action " + input.Action,
 					PublicMessage:   fmt.Sprintf("Unsupported manage user account action %s. Allowed actions are: addsteamid, removesteamid, adduser, setaccesslevel, setpassword.", input.Action),
 					InternalCode:    domainerror.InvalidInput,
 				}
