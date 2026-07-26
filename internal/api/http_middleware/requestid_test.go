@@ -19,7 +19,7 @@ func testDiscardLogger() *slog.Logger {
 	return slog.New(slog.DiscardHandler)
 }
 
-func TestRequestIdMiddlewareWithProvidedHeader(t *testing.T) {
+func TestRequestIdMiddlewareIgnoresProvidedHeader(t *testing.T) {
 	t.Parallel()
 
 	requestID := uuid.NewString()
@@ -39,10 +39,15 @@ func TestRequestIdMiddlewareWithProvidedHeader(t *testing.T) {
 
 	wrappedHandler.ServeHTTP(w, req)
 
-	assert.Equal(t, requestID, w.Header().Get("X-Request-Id"))
+	responseID := w.Header().Get("X-Request-Id")
+	assert.NotEmpty(t, responseID)
+	assert.NotEqual(t, requestID, responseID)
+
+	_, err := uuid.Parse(responseID)
+	require.NoError(t, err)
 
 	contextID := appctx.GetRequestId(capturedCtx)
-	assert.Equal(t, requestID, contextID)
+	assert.Equal(t, responseID, contextID)
 
 	assert.Equal(t, http.StatusOK, w.Code)
 }
@@ -78,37 +83,28 @@ func TestRequestIdMiddlewareGeneratesUUID(t *testing.T) {
 	assert.Equal(t, http.StatusOK, w.Code)
 }
 
-func TestRequestIdMiddlewareInvalidHeader(t *testing.T) {
+func TestRequestIdMiddlewareAlwaysSucceedsRegardlessOfHeader(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
-		name         string
-		requestID    string
-		wantStatus   int
-		wantResponse string
+		name      string
+		requestID string
 	}{
 		{
-			name:         "invalid UUID format",
-			requestID:    "not-a-uuid",
-			wantStatus:   http.StatusBadRequest,
-			wantResponse: "Invalid X-Request-Id header",
+			name:      "invalid UUID format",
+			requestID: "not-a-uuid",
 		},
 		{
-			name:       "empty string generates new UUID",
-			requestID:  "",
-			wantStatus: http.StatusOK,
+			name:      "empty string generates new UUID",
+			requestID: "",
 		},
 		{
-			name:         "malformed UUID",
-			requestID:    "12345678-1234-1234-1234",
-			wantStatus:   http.StatusBadRequest,
-			wantResponse: "Invalid X-Request-Id header",
+			name:      "malformed UUID",
+			requestID: "12345678-1234-1234-1234",
 		},
 		{
-			name:         "random gibberish",
-			requestID:    "this-is-not-valid-at-all!@#$",
-			wantStatus:   http.StatusBadRequest,
-			wantResponse: "Invalid X-Request-Id header",
+			name:      "random gibberish",
+			requestID: "this-is-not-valid-at-all!@#$",
 		},
 	}
 
@@ -134,14 +130,13 @@ func TestRequestIdMiddlewareInvalidHeader(t *testing.T) {
 
 			wrappedHandler.ServeHTTP(w, req)
 
-			assert.Equal(t, tt.wantStatus, w.Code)
+			assert.Equal(t, http.StatusOK, w.Code)
+			assert.True(t, handlerCalled)
 
-			if tt.wantStatus == http.StatusBadRequest {
-				assert.False(t, handlerCalled)
-				assert.Contains(t, w.Body.String(), tt.wantResponse)
-			} else {
-				assert.True(t, handlerCalled)
-			}
+			responseID := w.Header().Get("X-Request-Id")
+			assert.NotEmpty(t, responseID)
+			_, err := uuid.Parse(responseID)
+			require.NoError(t, err)
 		})
 	}
 }
@@ -196,8 +191,11 @@ func TestGetRequestIdViaMiddleware(t *testing.T) {
 
 	wrappedHandler.ServeHTTP(w, req)
 
+	responseID := w.Header().Get("X-Request-Id")
+
 	got := appctx.GetRequestId(capturedCtx)
-	assert.Equal(t, requestID, got)
+	assert.Equal(t, responseID, got)
+	assert.NotEqual(t, requestID, got)
 }
 
 func TestRequestIdMiddlewareMultipleRequests(t *testing.T) {
@@ -228,17 +226,17 @@ func TestRequestIdMiddlewareMultipleRequests(t *testing.T) {
 	assert.NotEqual(t, ids[0], ids[1])
 }
 
-func TestRequestIdMiddlewareValidUUIDs(t *testing.T) {
+func TestRequestIdMiddlewareGeneratesFreshIdForEachProvidedUUID(t *testing.T) {
 	t.Parallel()
 
-	validUUIDs := []string{
+	providedUUIDs := []string{
 		uuid.NewString(),
 		uuid.NewString(),
 		uuid.NewString(),
 	}
 
-	for _, validID := range validUUIDs {
-		t.Run("valid_uuid_"+validID[:8], func(t *testing.T) {
+	for _, providedID := range providedUUIDs {
+		t.Run("provided_uuid_"+providedID[:8], func(t *testing.T) {
 			t.Parallel()
 
 			handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -249,13 +247,17 @@ func TestRequestIdMiddlewareValidUUIDs(t *testing.T) {
 			wrappedHandler := middleware(handler)
 
 			req := httptest.NewRequestWithContext(context.Background(), "GET", "/test", http.NoBody)
-			req.Header.Set("X-Request-Id", validID)
+			req.Header.Set("X-Request-Id", providedID)
 			w := httptest.NewRecorder()
 
 			wrappedHandler.ServeHTTP(w, req)
 
 			assert.Equal(t, http.StatusOK, w.Code)
-			assert.Equal(t, validID, w.Header().Get("X-Request-Id"))
+
+			responseID := w.Header().Get("X-Request-Id")
+			assert.NotEqual(t, providedID, responseID)
+			_, err := uuid.Parse(responseID)
+			require.NoError(t, err)
 		})
 	}
 }
@@ -278,6 +280,8 @@ func TestRequestIdMiddlewareResponseHeader(t *testing.T) {
 
 	wrappedHandler.ServeHTTP(w, req)
 
-	assert.Equal(t, requestID, w.Header().Get("X-Request-Id"))
+	responseID := w.Header().Get("X-Request-Id")
+	assert.NotEmpty(t, responseID)
+	assert.NotEqual(t, requestID, responseID)
 	assert.Equal(t, http.StatusOK, w.Code)
 }
