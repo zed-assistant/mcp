@@ -32,5 +32,5 @@ jobs:
                 for p in $platforms; do
                   export GOOS=${p%/*} GOARCH=${p#*/}
                   ext=""; [ "$GOOS" = "windows" ] && ext=".exe"
-                  go build -o /tmp/zed-assistant-mcp-${GOOS}-${GOARCH}${ext} .
+                  go build -o /tmp/zed-assistant-mcp-${GOOS}-${GOARCH}${ext} ./cmd/server/*.go
                 done
