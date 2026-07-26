@@ -13,6 +13,7 @@ func withClientOverride(ctx context.Context, c fosite.Client) context.Context {
 	return context.WithValue(ctx, ctxKeyClientOverride{}, c)
 }
 
+//nolint:ireturn // reads back a context value stored as fosite.Client; narrowing to a concrete type would silently drop overrides of other client types
 func clientOverrideFrom(ctx context.Context) fosite.Client {
 	c, _ := ctx.Value(ctxKeyClientOverride{}).(fosite.Client)
 	return c
@@ -44,6 +45,7 @@ func (s *MemoryStore) WithLoopbackRedirect(ctx context.Context, q url.Values) co
 	return ctx
 }
 
+//nolint:ireturn // must stay fosite.Client to compose with clientOverrideFrom and GetClient, which are constrained by fosite's own interfaces
 func cloneWithRedirect(c fosite.Client, redirect string) fosite.Client {
 	return &fosite.DefaultClient{
 		ID:            c.GetID(),

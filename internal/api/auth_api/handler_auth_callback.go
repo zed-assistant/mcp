@@ -82,6 +82,7 @@ func (a *AuthApi) authenticationCallback(w http.ResponseWriter, r *http.Request)
 	a.oauthProvider.WriteAuthorizeResponse(ctx, w, ar, resp)
 }
 
+//nolint:ireturn // fosite.NewAuthorizeRequest returns the fosite.AuthorizeRequester interface directly; no concrete type to narrow to
 func (a *AuthApi) rebuildAuthorizeRequest(ctx context.Context, pendingAuth *oauth.PendingAuth) (context.Context, fosite.AuthorizeRequester, error) {
 	req := &http.Request{
 		Method: http.MethodGet,

@@ -25,7 +25,7 @@ type ManageUserAccountOutput struct {
 	Message string `json:"message,omitempty" jsonschema:"Message returned by the server, if any (e.g. the generated password hash for setpassword)"`
 }
 
-func (m *McpToolManager) ManageUserAccount() Tool {
+func (m *McpToolManager) ManageUserAccount() *MCPTool[ManageUserAccountInput, *ManageUserAccountOutput] {
 	return &MCPTool[ManageUserAccountInput, *ManageUserAccountOutput]{
 		Definition: &mcp.Tool{
 			Name:        "manage-user-account",

@@ -26,7 +26,7 @@ type ModeratePlayerOutput struct {
 	Status     *instance.ServerStatus `json:"status" jsonschema:"The current status of the server after the action"`
 }
 
-func (m *McpToolManager) ModeratePlayer() Tool {
+func (m *McpToolManager) ModeratePlayer() *MCPTool[ModeratePlayerInput, *ModeratePlayerOutput] {
 	return &MCPTool[ModeratePlayerInput, *ModeratePlayerOutput]{
 		Definition: &mcp.Tool{
 			Name:        "moderate-player",

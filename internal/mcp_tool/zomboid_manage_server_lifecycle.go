@@ -22,7 +22,7 @@ type ManageServerLifecycleOutput struct {
 	Message string `json:"message,omitempty" jsonschema:"Message returned by the server, if any"`
 }
 
-func (m *McpToolManager) ManageServerLifecycle() Tool {
+func (m *McpToolManager) ManageServerLifecycle() *MCPTool[ManageServerLifecycleInput, *ManageServerLifecycleOutput] {
 	return &MCPTool[ManageServerLifecycleInput, *ManageServerLifecycleOutput]{
 		Definition: &mcp.Tool{
 			Name:        "manage-server-lifecycle",

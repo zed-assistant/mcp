@@ -13,6 +13,7 @@ import (
 // map[string]any of the same shape. keyFilters (if non-nil) are matched against
 // each leaf's full dotted path (e.g. "ZombieLore.Speed"); groups with no
 // matching descendants are pruned from the result.
+//nolint:ireturn // genuinely returns either a ConfigEntry or a nested map[string]any depending on the node, by design
 func sandboxNodeToOutput(node *sandboxNode, path string, keyFilters []string) (any, bool, error) {
 	if node.Leaf != nil {
 		if keyFilters != nil {

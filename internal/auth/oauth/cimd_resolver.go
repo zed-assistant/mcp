@@ -59,6 +59,7 @@ type cimdDocument struct {
 	Scope                   string   `json:"scope"`
 }
 
+//nolint:ireturn // implements ClientIdMetadataDocumentResolver, which must return fosite.Client so callers stay polymorphic over client sources
 func (r *CIMDResolver) Resolve(ctx context.Context, id string, allowedScopes []string, audience string) (fosite.Client, error) {
 	u, err := url.Parse(id)
 	if err != nil || u.Scheme != "https" || u.Host == "" || u.Fragment != "" {

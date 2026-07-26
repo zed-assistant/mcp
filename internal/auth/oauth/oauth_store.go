@@ -29,6 +29,7 @@ func NewMemoryStore(cimdResolver ClientIdMetadataDocumentResolver, appConfig *co
 	}
 }
 
+//nolint:ireturn // signature fixed by fosite's Storage interface, which this type implements
 func (s *MemoryStore) GetClient(ctx context.Context, id string) (fosite.Client, error) {
 	if c := clientOverrideFrom(ctx); c != nil && c.GetID() == id {
 		return c, nil

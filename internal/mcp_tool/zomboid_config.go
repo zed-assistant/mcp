@@ -15,7 +15,7 @@ type ReadConfigInput struct {
 	Keys       *[]string         `json:"keys,omitempty" jsonschema:"Optional filter. Omit to return all. These files are large - filter when you know what you want. Filters are matched against the full dotted path of each setting (e.g. 'ZombieLore.Speed'), and you can use * as a wildcard anywhere in a filter (e.g. 'ZombieLore.*' to select a whole group, or '*Speed*' to find similarly named settings anywhere)."`
 }
 
-func (m *McpToolManager) ReadZomboidConfig() Tool {
+func (m *McpToolManager) ReadZomboidConfig() *MCPTool[ReadConfigInput, map[string]any] {
 	return &MCPTool[ReadConfigInput, map[string]any]{
 		Definition: &mcp.Tool{
 			Name: "read-zomboid-config",
@@ -60,7 +60,7 @@ type UpdateConfigInput struct {
 	ApplyLive  bool              `json:"applyLive,omitempty" jsonschema:"Attempt to apply the updates live to the running server via RCON reloadoptions. Only supported for configType='server' (works for the .ini ServerOptions, e.g. ports, player limits). Not supported for configType='sandbox' and will be rejected: there is no confirmed way to hot-reload SandboxVars, and many sandbox settings only take effect on world/server restart. If false or missing, updates are saved and applied on next server restart."`
 }
 
-func (m *McpToolManager) UpdateZomboidConfig() Tool {
+func (m *McpToolManager) UpdateZomboidConfig() *MCPTool[UpdateConfigInput, map[string]any] {
 	return &MCPTool[UpdateConfigInput, map[string]any]{
 		Definition: &mcp.Tool{
 			Name: "update-zomboid-config",

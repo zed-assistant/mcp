@@ -12,6 +12,7 @@ var dialer = &net.Dialer{
 	KeepAlive: 30 * time.Second,
 }
 
+//nolint:ireturn // must match http.Transport.DialContext's signature, and net.Dialer.DialContext itself returns net.Conn
 func SSRFSafeDialContext(ctx context.Context, network, addr string) (net.Conn, error) {
 	host, port, err := net.SplitHostPort(addr)
 	if err != nil {

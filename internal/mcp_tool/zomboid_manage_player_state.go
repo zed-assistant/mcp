@@ -28,7 +28,7 @@ type ManagePlayerStateOutput struct {
 	Message  string `json:"message,omitempty" jsonschema:"Message returned by the server, if any"`
 }
 
-func (m *McpToolManager) ManagePlayerState() Tool {
+func (m *McpToolManager) ManagePlayerState() *MCPTool[ManagePlayerStateInput, *ManagePlayerStateOutput] {
 	return &MCPTool[ManagePlayerStateInput, *ManagePlayerStateOutput]{
 		Definition: &mcp.Tool{
 			Name:        "manage-player-state",

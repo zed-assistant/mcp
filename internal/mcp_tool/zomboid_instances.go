@@ -8,7 +8,7 @@ import (
 	"github.com/zed-assistant/mcp/internal/zomboid/instance"
 )
 
-func (m *McpToolManager) ListZomboidInstances() Tool {
+func (m *McpToolManager) ListZomboidInstances() *MCPTool[Empty, []*instance.Instance] {
 	return &MCPTool[Empty, []*instance.Instance]{
 		Definition: &mcp.Tool{
 			Name:        "list-zomboid-instances",

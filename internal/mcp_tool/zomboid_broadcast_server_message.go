@@ -14,7 +14,7 @@ type BroadcastServerMessageInput struct {
 	Message    string `json:"message" jsonschema:"Message to broadcast to all players on the server" validate:"required"`
 }
 
-func (m *McpToolManager) BroadcastServerMessage() Tool {
+func (m *McpToolManager) BroadcastServerMessage() *MCPTool[BroadcastServerMessageInput, Empty] {
 	return &MCPTool[BroadcastServerMessageInput, Empty]{
 		Definition: &mcp.Tool{
 			Name:        "broadcast-server-message",

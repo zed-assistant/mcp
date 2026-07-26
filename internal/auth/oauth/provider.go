@@ -23,6 +23,7 @@ type Store interface {
 	oauth2.TokenRevocationStorage
 }
 
+//nolint:ireturn // compose.ComposeAllEnabled returns fosite.OAuth2Provider directly; the concrete type is unexported in the fosite package
 func NewOAuth2Provider(appConfig *configuration.AppConfig, random Random, store Store) (fosite.OAuth2Provider, error) {
 	globalSecret := appConfig.OAuth2.SigningSecret
 	if len(globalSecret) == 0 {

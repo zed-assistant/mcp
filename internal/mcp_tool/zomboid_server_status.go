@@ -13,7 +13,7 @@ type GetServerStatusInput struct {
 	InstanceID string `json:"instanceId" jsonschema:"The ID of the Project Zomboid server instance" validate:"required"`
 }
 
-func (m *McpToolManager) GetServerStatus() Tool {
+func (m *McpToolManager) GetServerStatus() *MCPTool[GetServerStatusInput, *instance.ServerStatus] {
 	return &MCPTool[GetServerStatusInput, *instance.ServerStatus]{
 		Definition: &mcp.Tool{
 			Name:        "get-server-status",

@@ -14,7 +14,7 @@ type RawAdminCommandInput struct {
 	Command    string `json:"command" jsonschema:"Full admin command with arguments in a single string" validate:"required"`
 }
 
-func (m *McpToolManager) ExecuteRawAdminCommand() Tool {
+func (m *McpToolManager) ExecuteRawAdminCommand() *MCPTool[RawAdminCommandInput, string] {
 	return &MCPTool[RawAdminCommandInput, string]{
 		Definition: &mcp.Tool{
 			Name:        "execute-raw-admin-command",

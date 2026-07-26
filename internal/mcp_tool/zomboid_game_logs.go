@@ -17,7 +17,7 @@ type GetGameLogsInput struct {
 	Filter     string `json:"filter,omitempty" jsonschema:"Optional filter for log lines. Matches any line containing this text as a substring, case-insensitive - no wildcard needed for a plain search. You can also use * to match any run of characters, e.g. 'wa*n' matches lines containing 'warn'. When set, the 'lines' limit applies to matching lines only - the file is scanned backward from the end until enough matches are found or the start of the file is reached."`
 }
 
-func (m *McpToolManager) GetGameLogs() Tool {
+func (m *McpToolManager) GetGameLogs() *MCPTool[GetGameLogsInput, []string] {
 	return &MCPTool[GetGameLogsInput, []string]{
 		Definition: &mcp.Tool{
 			Name:        "get-zomboid-game-logs",
