@@ -45,7 +45,7 @@ jobs:
                 for p in $platforms; do
                   export GOOS=${p%/*} GOARCH=${p#*/}
                   ext=""; [ "$GOOS" = "windows" ] && ext=".exe"
-                  go build -o dist/zed-assistant-mcp-${GOOS}-${GOARCH}${ext} ./cmd/server/*.go
+                  CGO_ENABLED=0 go build -trimpath -mod=readonly -o dist/zed-assistant-mcp-${GOOS}-${GOARCH}${ext} ./cmd/server/*.go
                 done
 
             - name: Upload build artifacts
