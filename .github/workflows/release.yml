@@ -1,0 +1,108 @@
+name: Release
+
+# Runs only after the "Continuous Integration" workflow completes, and only
+# acts when that run was a tag push. It never triggers directly off pull
+# requests or branch pushes, and it never checks out repository code, so it
+# cannot execute anything from a contributor-controlled branch or PR.
+on:
+    workflow_run:
+        workflows: ['Continuous Integration']
+        types: [completed]
+
+permissions: {}
+
+jobs:
+    release:
+        # head_repository check is defense-in-depth: push events (which is all
+        # CI listens to) never originate from forks anyway, but this keeps the
+        # job inert if that ever changes.
+        if: >-
+            github.event.workflow_run.conclusion == 'success' &&
+            github.event.workflow_run.event == 'push' &&
+            github.event.workflow_run.head_repository.full_name == github.repository
+        runs-on: ubuntu-latest
+
+        permissions:
+            contents: write
+            actions: read
+
+        steps:
+            - name: Verify this is a v-tagged, successful CI run
+              id: tag
+              env:
+                GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+                HEAD_BRANCH: ${{ github.event.workflow_run.head_branch }}
+                HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
+                RUN_ID: ${{ github.event.workflow_run.id }}
+              run: |
+                set -euo pipefail
+
+                # 1. Only ever release tags matching the same 'v*' pattern
+                #    ci.yml uses to trigger builds. Checked explicitly here
+                #    too, rather than relying solely on ci.yml's own filter.
+                case "$HEAD_BRANCH" in
+                  v*) ;;
+                  *)
+                    echo "Ref '${HEAD_BRANCH}' does not match 'v*'; not a release." >&2
+                    echo "is_tag=false" >> "$GITHUB_OUTPUT"
+                    exit 0
+                    ;;
+                esac
+
+                # 2. workflow_run.head_branch is ambiguous: pushing a branch
+                #    named e.g. "v1" looks identical to pushing tag "v1".
+                #    Resolve it against the actual tag ref and require the
+                #    SHA to match before treating this as a release.
+                resolved_sha="$(gh api "repos/${{ github.repository }}/git/ref/tags/${HEAD_BRANCH}" --jq '.object.sha' 2>/dev/null || true)"
+                if [ -z "$resolved_sha" ] || [ "$resolved_sha" != "$HEAD_SHA" ]; then
+                  echo "No tag named '${HEAD_BRANCH}' points at ${HEAD_SHA}; not a release." >&2
+                  echo "is_tag=false" >> "$GITHUB_OUTPUT"
+                  exit 0
+                fi
+
+                # 3. Independently re-fetch the run by the ID we're about to
+                #    pass to download-artifact, instead of only trusting the
+                #    event payload's fields. This pins down, in an auditable
+                #    log line, that RUN_ID really is a "Continuous
+                #    Integration" run, for this exact commit, that succeeded
+                #    -- i.e. that the artifacts we're about to fetch belong
+                #    to the build for this tag and nothing else.
+                run_json="$(gh api "repos/${{ github.repository }}/actions/runs/${RUN_ID}")"
+                run_name="$(jq -r '.name' <<<"$run_json")"
+                run_sha="$(jq -r '.head_sha' <<<"$run_json")"
+                run_conclusion="$(jq -r '.conclusion' <<<"$run_json")"
+                if [ "$run_name" != "Continuous Integration" ] || [ "$run_sha" != "$HEAD_SHA" ] || [ "$run_conclusion" != "success" ]; then
+                  echo "Run #${RUN_ID} did not match the expected workflow/sha/conclusion (name=$run_name sha=$run_sha conclusion=$run_conclusion)." >&2
+                  exit 1
+                fi
+
+                echo "Verified: tag ${HEAD_BRANCH} == run #${RUN_ID} (${run_sha})." >&2
+                echo "is_tag=true" >> "$GITHUB_OUTPUT"
+                echo "tag=${HEAD_BRANCH}" >> "$GITHUB_OUTPUT"
+
+            - name: Download all artifacts from the verified run
+              if: steps.tag.outputs.is_tag == 'true'
+              uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+              with:
+                github-token: ${{ secrets.GITHUB_TOKEN }}
+                run-id: ${{ github.event.workflow_run.id }}
+                path: release-artifacts
+                merge-multiple: true
+
+            - name: Generate checksums
+              if: steps.tag.outputs.is_tag == 'true'
+              working-directory: release-artifacts
+              run: sha256sum * > checksums.txt
+
+            - name: Create GitHub release
+              if: steps.tag.outputs.is_tag == 'true'
+              env:
+                GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+                TAG: ${{ steps.tag.outputs.tag }}
+              run: |
+                set -euo pipefail
+                gh release create "$TAG" \
+                  --repo "${{ github.repository }}" \
+                  --title "$TAG" \
+                  --generate-notes \
+                  release-artifacts/*

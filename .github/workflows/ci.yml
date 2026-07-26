@@ -4,6 +4,18 @@ on:
     push:
         branches: ['**']
         tags: ['v*']
+    # Safe to run untrusted fork PR code here: `pull_request` (never
+    # `pull_request_target`) runs the PR's own workflow file with a
+    # read-only GITHUB_TOKEN and no repository secrets, and `permissions`
+    # below pins that down explicitly regardless of repo-level defaults.
+    pull_request:
+
+permissions:
+    contents: read
+
+concurrency:
+    group: ci-${{ github.workflow }}-${{ github.ref }}
+    cancel-in-progress: true
 
 jobs:
     build-app:
@@ -28,9 +40,21 @@ jobs:
 
             - name: Build binaries
               run: |
+                mkdir -p dist
                 platforms="linux/amd64 windows/amd64"
                 for p in $platforms; do
                   export GOOS=${p%/*} GOARCH=${p#*/}
                   ext=""; [ "$GOOS" = "windows" ] && ext=".exe"
-                  go build -o /tmp/zed-assistant-mcp-${GOOS}-${GOARCH}${ext} ./cmd/server/*.go
+                  go build -o dist/zed-assistant-mcp-${GOOS}-${GOARCH}${ext} ./cmd/server/*.go
                 done
+
+            - name: Upload build artifacts
+              # Artifacts are only needed by the release workflow, so only
+              # produce them for tag pushes.
+              if: startsWith(github.ref, 'refs/tags/')
+              uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+              with:
+                name: binaries
+                path: dist/*
+                if-no-files-found: error
+                retention-days: 7
